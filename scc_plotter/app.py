@@ -31,7 +31,15 @@ DATA_DIR = APP_DIR / "data"
 PARAMS_FILE = APP_DIR / "custom_parameters.json"
 NONE = "(none)"
 
-st.set_page_config(page_title="SCC Plotter", layout="wide")
+st.set_page_config(page_title="SCC Plotter", layout="wide", initial_sidebar_state="expanded")
+st.markdown("""
+<style>
+  .block-container {padding-top: 2rem; padding-bottom: 2rem;}
+  [data-testid="stMetricValue"] {font-size: 1.6rem;}
+  [data-testid="stMetric"] {background: #f1f0ec; border-radius: 10px; padding: 10px 14px;}
+  [data-testid="stSidebar"] [data-testid="stExpander"] summary p {font-weight: 600;}
+</style>
+""", unsafe_allow_html=True)
 
 
 # --------------------------------------------------------------------------- helpers
@@ -79,11 +87,13 @@ def apply_suggestion(s: dict) -> None:
 # --------------------------------------------------------------------------- data
 
 st.sidebar.title("SCC Plotter")
-uploaded = st.sidebar.file_uploader("Workbook (.xlsx)", type=["xlsx"])
+st.sidebar.caption("PWR stainless steel · SCC crack growth rate")
+default = find_default_workbook()
+sb_file = st.sidebar.expander("Workbook", expanded=default is None)
+uploaded = sb_file.file_uploader("Load a workbook (.xlsx)", type=["xlsx"])
 if uploaded is not None:
     raw_bytes, source_name = uploaded.getvalue(), uploaded.name
 else:
-    default = find_default_workbook()
     if default is None:
         st.info("Upload the workbook in the sidebar, or put the .xlsx file in the "
                 "`data` folder next to app.py so it loads automatically.")
@@ -97,7 +107,7 @@ params: list[CustomParam] = st.session_state["params"]
 ds, param_errors = apply_params(base, params)
 df_all = ds.df
 cols = ds.columns
-st.sidebar.caption(f"{source_name} · sheet '{ds.sheet}' · {len(df_all)} rows")
+sb_file.caption(f"{source_name} · sheet '{ds.sheet}' · {len(df_all)} rows")
 
 
 def label(var: str) -> str:
@@ -116,7 +126,7 @@ for f in flags:
 
 # --------------------------------------------------------------------------- sidebar: axes
 
-st.sidebar.header("Plot")
+sb_plot = st.sidebar.expander("Axes & colour", expanded=True)
 defaults = {"x": "K", "y": "CGR", "color": "Material", "log_x": False, "log_y": True}
 for k, v in defaults.items():
     st.session_state.setdefault(k, v)
@@ -128,35 +138,44 @@ color_options = [NONE] + categorical + flags + numeric
 if st.session_state["color"] not in color_options:
     st.session_state["color"] = NONE
 
-x = st.sidebar.selectbox("X axis", numeric, key="x", format_func=label)
-y = st.sidebar.selectbox("Y axis", numeric, key="y", format_func=label)
-c1, c2 = st.sidebar.columns(2)
+x = sb_plot.selectbox("X axis", numeric, key="x", format_func=label)
+y = sb_plot.selectbox("Y axis", numeric, key="y", format_func=label)
+c1, c2 = sb_plot.columns(2)
 log_x = c1.checkbox("Log X", key="log_x")
 log_y = c2.checkbox("Log Y", key="log_y")
-color = st.sidebar.selectbox("Colour by", color_options, key="color", format_func=label)
-max_colors = st.sidebar.slider(
+color = sb_plot.selectbox("Colour by", color_options, key="color", format_func=label)
+max_colors = sb_plot.slider(
     "Max colours (rest → 'Other')", 3, 8, 8,
     help="Categories beyond this many are grouped as 'Other'. Fewer colours are "
          "easier to tell apart.",
 )
-use_symbols = st.sidebar.checkbox("Also vary marker shape", value=True,
+use_symbols = sb_plot.checkbox("Also vary marker shape", value=True,
                                   help="Helps tell colours apart, also in print.")
 
 # --------------------------------------------------------------------------- sidebar: filters
 
-st.sidebar.header("Filters")
+sb_filt = st.sidebar.expander("Filters", expanded=True)
+
+
+def reset_filters() -> None:
+    for k in list(st.session_state):
+        if k.startswith(("flag_", "cat_", "range_")):
+            del st.session_state[k]
+
+
+sb_filt.button("Reset filters", on_click=reset_filters)
 filters = Filters()
 for f in flags:
-    if st.sidebar.checkbox(f"Only {cols[f].name}", key=f"flag_{f}",
+    if sb_filt.checkbox(f"Only {cols[f].name}", key=f"flag_{f}",
                            help=f"{cols[f].note} ({int(df_all[f].sum())} rows)"):
         filters.flags.append(f)
 for var in [v for v in ("Lab", "Material", "Condition") if v in categorical]:
     options = sorted(df_all[var].astype("string").fillna(EMPTY).unique())
-    chosen = st.sidebar.multiselect(var, options, key=f"cat_{var}",
+    chosen = sb_filt.multiselect(var, options, key=f"cat_{var}",
                                     placeholder="All")
     if chosen:
         filters.categories[var] = chosen
-range_vars = st.sidebar.multiselect(
+range_vars = sb_filt.multiselect(
     "Range filters on", numeric, key="range_vars", format_func=label,
     help="Add a slider for any numeric parameter. Rows with that cell empty are excluded.",
 )
@@ -166,17 +185,30 @@ for var in range_vars:
         continue
     lo, hi = float(col.min()), float(col.max())
     if lo == hi:
-        st.sidebar.caption(f"{label(var)}: only value {lo:g}")
+        sb_filt.caption(f"{label(var)}: only value {lo:g}")
         continue
     if is_discrete(col):
         values = sorted(col.unique())
-        a, b = st.sidebar.select_slider(label(var), options=values, value=(values[0], values[-1]),
+        a, b = sb_filt.select_slider(label(var), options=values, value=(values[0], values[-1]),
                                         key=f"range_{var}")
     else:
-        a, b = st.sidebar.slider(label(var), lo, hi, (lo, hi), key=f"range_{var}")
+        a, b = sb_filt.slider(label(var), lo, hi, (lo, hi), key=f"range_{var}")
     filters.ranges[var] = (a, b)
 
 df = apply_filters(df_all, filters)
+
+# --------------------------------------------------------------------------- header
+
+st.title("SCC crack growth explorer")
+st.caption("Pick any two parameters in the sidebar, colour and filter them, and look for "
+           "patterns. Open *Suggested plots* below for ready-made starting points.")
+m1, m2, m3, m4 = st.columns(4)
+m1.metric(f"Rows shown (of {len(df_all)})", len(df))
+if "Lab" in df:
+    m2.metric(f"Labs (of {df_all['Lab'].nunique()})", df["Lab"].nunique())
+if "Material" in df:
+    m3.metric(f"Materials (of {df_all['Material'].nunique()})", df["Material"].nunique())
+m4.metric("Custom parameters", len(params))
 
 # --------------------------------------------------------------------------- warnings
 

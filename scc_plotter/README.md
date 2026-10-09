@@ -6,9 +6,16 @@ switch parameters freely, and find patterns worth a dimensional analysis later.
 
 ## Start it (Windows)
 
-1. Install Python 3.10 or newer from python.org (tick "Add Python to PATH").
-2. Copy the workbook into the `data` folder.
-3. Double-click `run_app.bat`. Your browser opens the app at http://localhost:8501.
+1. Install Python 3.10 or newer from https://www.python.org/downloads/
+   (tick "Add python.exe to PATH" in the installer).
+2. **Extract the zip** (right-click → "Extract All..."). Running it from inside
+   the zip does not work.
+3. Copy the workbook into the `data` folder.
+4. Double-click `run_app.bat`. The first run creates a private environment in
+   `.venv` and installs the packages (a few minutes). Your browser then opens
+   the app at http://localhost:8501. Close the black window to stop it.
+
+If something fails, the window stays open with a message; send a screenshot.
 
 Or from a terminal:
 
