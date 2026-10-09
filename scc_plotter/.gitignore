@@ -1,0 +1,7 @@
+data/*
+!data/README.md
+*.xlsx
+~$*
+__pycache__/
+.pytest_cache/
+_params_test.json

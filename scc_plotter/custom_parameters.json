@@ -1,0 +1,48 @@
+{
+  "parameters": [
+    {
+      "name": "R",
+      "kind": "constant",
+      "unit": "J/(mol·K)",
+      "description": "Universal gas constant",
+      "value": 8.314,
+      "formula": "",
+      "key_column": "",
+      "mapping": {},
+      "default": null
+    },
+    {
+      "name": "T_K",
+      "kind": "formula",
+      "unit": "K",
+      "description": "Test temperature in kelvin",
+      "value": null,
+      "formula": "Temp + 273.15",
+      "key_column": "",
+      "mapping": {},
+      "default": null
+    },
+    {
+      "name": "invT_1000",
+      "kind": "formula",
+      "unit": "1000/K",
+      "description": "Inverse temperature for Arrhenius plots",
+      "value": null,
+      "formula": "1000 / T_K",
+      "key_column": "",
+      "mapping": {},
+      "default": null
+    },
+    {
+      "name": "CGR_from_da",
+      "kind": "formula",
+      "unit": "mm/s",
+      "description": "Crack growth rate recomputed from crack extension and test time",
+      "value": null,
+      "formula": "da / (dTime * 3600)",
+      "key_column": "",
+      "mapping": {},
+      "default": null
+    }
+  ]
+}
