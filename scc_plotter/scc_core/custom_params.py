@@ -107,11 +107,15 @@ def apply_params(ds: Dataset, params: list[CustomParam]) -> tuple[Dataset, list[
     df = ds.df.copy()
     columns = dict(ds.columns)
     constants: dict[str, float] = {}
+    units: dict[str, str] = {}
     errors: list[str] = []
     for p in params:
         try:
             if p.kind == "constant":
+                if p.name in columns:
+                    raise FormulaError(f"'{p.name}' already exists in the data")
                 constants[p.name] = float(p.value)
+                units[p.name] = p.unit
                 continue
             if p.name in columns:
                 raise FormulaError(f"'{p.name}' already exists in the data")
@@ -137,7 +141,8 @@ def apply_params(ds: Dataset, params: list[CustomParam]) -> tuple[Dataset, list[
         except (FormulaError, TypeError, ValueError) as exc:
             errors.append(f"{p.name}: {exc}")
     out = Dataset(df=df, columns=columns, sheet=ds.sheet, header_row=ds.header_row,
-                  warnings=list(ds.warnings))
+                  warnings=list(ds.warnings),
+                  constants={k: (v, units[k]) for k, v in constants.items()})
     return out, errors
 
 
@@ -156,3 +161,14 @@ def load_params(path: Path) -> list[CustomParam]:
 def save_params(path: Path, params: list[CustomParam]) -> None:
     payload = {"parameters": [asdict(p) for p in params]}
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def load_unit_overrides(path: Path) -> dict[str, str]:
+    """Units the user corrected in the app, keyed by variable name."""
+    if not path.exists():
+        return {}
+    return dict(json.loads(path.read_text(encoding="utf-8")))
+
+
+def save_unit_overrides(path: Path, overrides: dict[str, str]) -> None:
+    path.write_text(json.dumps(overrides, indent=2, ensure_ascii=False), encoding="utf-8")

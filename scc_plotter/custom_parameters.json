@@ -25,7 +25,7 @@
     {
       "name": "invT_1000",
       "kind": "formula",
-      "unit": "1000/K",
+      "unit": "1e-3/K",
       "description": "Inverse temperature for Arrhenius plots",
       "value": null,
       "formula": "1000 / T_K",

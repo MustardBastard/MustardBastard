@@ -55,6 +55,7 @@ class Dataset:
     sheet: str
     header_row: int                 # 1-based Excel row number
     warnings: list[str] = field(default_factory=list)
+    constants: dict[str, tuple[float, str]] = field(default_factory=dict)  # name -> (value, unit)
 
     def numeric_vars(self) -> list[str]:
         return [v for v, c in self.columns.items() if c.kind == "numeric"]

@@ -6,3 +6,4 @@ __pycache__/
 .pytest_cache/
 _params_test.json
 .venv/
+unit_overrides.json

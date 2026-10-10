@@ -160,6 +160,80 @@ def test_coverage():
     assert cov.loc["GE", "rows"] == 2
 
 
+def test_units():
+    from scc_core.units import parse_unit, UnitError
+    u = parse_unit("MPa√m")
+    assert np.isclose(u.scale, 1e6) and np.allclose(u.dims, (1, -0.5, -2, 0, 0))
+    assert np.isclose(parse_unit("mm/s").scale, 1e-3)
+    assert parse_unit("°C").offset == 273.15
+    assert np.allclose(parse_unit("J/(mol·K)").dims, (1, 2, -2, -1, -1))
+    assert np.isclose(parse_unit("m²/s").scale, 1) and np.allclose(parse_unit("m²/s").dims, (0, 2, -1, 0, 0))
+    assert np.isclose(parse_unit("µm").scale, 1e-6)
+    assert parse_unit("ppb").dimensionless and parse_unit("").dimensionless
+    try:
+        parse_unit("1 to 5")
+        raise AssertionError("accepted '1 to 5'")
+    except UnitError:
+        pass
+
+
+def test_buckingham_match1_groups():
+    from fractions import Fraction
+    from scc_core.units import parse_unit
+    from scc_core.dimensional import buckingham
+    from scc_core.matches import MATCH_1
+    units = {"CGR": parse_unit("mm/s"), "K": parse_unit("MPa√m"), "T_K": parse_unit("K")}
+    units.update({p.name: parse_unit(p.unit) for p in MATCH_1["params"]})
+    r = buckingham(MATCH_1["variables"], units, MATCH_1["repeating"])
+    assert r.rank == 5 and r.n_groups == 3
+    g = {x.main: x.exponents for x in r.groups}
+    assert g["CGR"] == {"CGR": 1, "d": 1, "D": -1}
+    assert g["K"] == {"K": 1, "sigma_y": -1, "d": Fraction(-1, 2)}
+    assert g["Q"] == {"Q": 1, "R": -1, "T_K": -1}
+
+
+def test_group_value_in_si():
+    from scc_core.units import parse_unit
+    from scc_core.dimensional import buckingham
+    from scc_core.custom_params import evaluate_formula
+    df = pd.DataFrame({"CGR": [1e-6], "K": [30.0], "Temp": [290.0]})
+    units = {"CGR": parse_unit("mm/s"), "K": parse_unit("MPa√m"), "Temp": parse_unit("°C"),
+             "s_y": parse_unit("MPa"), "d": parse_unit("µm")}
+    r = buckingham(["K", "s_y", "d"], units, ["s_y", "d"])
+    val = evaluate_formula(r.groups[0].formula(units), df, {"s_y": 400.0, "d": 50.0})[0]
+    assert np.isclose(val, 30e6 / (400e6 * np.sqrt(50e-6)))
+
+
+def test_formula_dims_and_si_rewrite():
+    from scc_core.units import parse_unit
+    from scc_core.dimensional import formula_dims, is_dimensionless, si_formula, DimensionError
+    units = {"Temp": parse_unit("°C"), "Q": parse_unit("J/mol"), "R": parse_unit("J/(mol·K)"),
+             "T_K": parse_unit("K"), "K": parse_unit("MPa√m"), "CGR": parse_unit("mm/s")}
+    assert np.allclose(formula_dims("Temp + 273.15", units), (0, 0, 0, 1, 0))
+    assert is_dimensionless("Q / (R * T_K)", units)[0]
+    assert not is_dimensionless("K / CGR", units)[0]
+    try:
+        formula_dims("exp(K)", units)
+        raise AssertionError("exp of a dimensional quantity accepted")
+    except DimensionError:
+        pass
+    assert si_formula("CGR * 2", units) == "CGR * 0.001 * 2"
+    assert si_formula("Temp / 2", units) == "(Temp + 273.15) / 2"
+
+
+def test_collapse_score():
+    from scc_core.collapse import collapse
+    rng = np.random.default_rng(0)
+    x = pd.Series(10 ** rng.uniform(0, 2, 200))
+    lab = pd.Series(np.repeat(list("abcd"), 50))
+    y = pd.Series(1e-7 * x ** 2.5 * 10 ** rng.normal(0, 0.2, 200))
+    c = collapse(x, y, lab)
+    assert abs(c.coefs[0] - 2.5) < 0.1 and abs(c.scatter - 0.2) < 0.03 and c.n_labs == 4
+    # constants never change the score
+    c2 = collapse(x * 123.0, y * 1e-3, lab)
+    assert np.isclose(c.scatter, c2.scatter) and np.isclose(c.heldout, c2.heldout)
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

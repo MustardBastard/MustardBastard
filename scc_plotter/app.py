@@ -17,8 +17,10 @@ from plotly.subplots import make_subplots
 
 from scc_core.custom_params import (
     FUNCTIONS, CustomParam, FormulaError, apply_params, check_formula,
-    load_params, save_params, valid_name,
+    load_params, load_unit_overrides, save_params, save_unit_overrides, valid_name,
 )
+from scc_core.units import UnitError, parse_unit
+import nondim_tab
 from scc_core.loader import Dataset, load_workbook
 from scc_core.plotdata import (
     EMPTY, OTHER, SEQUENTIAL, SYMBOLS, Filters, apply_filters, category_colors,
@@ -29,6 +31,7 @@ from scc_core.suggestions import SUGGESTIONS
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
 PARAMS_FILE = APP_DIR / "custom_parameters.json"
+UNITS_FILE = APP_DIR / "unit_overrides.json"
 NONE = "(none)"
 
 st.set_page_config(page_title="SCC Plotter", layout="wide", initial_sidebar_state="expanded")
@@ -223,9 +226,55 @@ with st.expander(f"Data notes ({len(ds.warnings)})", expanded=False):
 
 # --------------------------------------------------------------------------- tabs
 
-tab_plot, tab_all, tab_cov, tab_params, tab_data = st.tabs(
-    ["Plot", "Y vs every parameter", "Data coverage", "Custom parameters", "Data table"]
+tab_plot, tab_all, tab_cov, tab_nd, tab_params, tab_data = st.tabs(
+    ["Plot", "Y vs every parameter", "Data coverage", "Nondimensionalize",
+     "Custom parameters", "Data table"]
 )
+
+# --------------------------------------------------------------------------- shared helpers
+
+unit_overrides = load_unit_overrides(UNITS_FILE)
+
+
+def unit_text(var: str) -> str:
+    """The unit of a column or constant, after any correction made in the app."""
+    if var in unit_overrides:
+        return unit_overrides[var]
+    if var in ds.constants:
+        return ds.constants[var][1]
+    return cols[var].unit if var in cols else ""
+
+
+def unit_or_none(var: str):
+    try:
+        return parse_unit(unit_text(var))
+    except UnitError:
+        return None
+
+
+def set_unit(changes: dict) -> None:
+    for var, text in changes.items():
+        original = ds.constants[var][1] if var in ds.constants else cols[var].unit
+        if text == original:
+            unit_overrides.pop(var, None)
+        else:
+            unit_overrides[var] = text
+    save_unit_overrides(UNITS_FILE, unit_overrides)
+
+
+names_in_use = set(cols) | {p.name for p in params}
+
+
+def add_param(p: CustomParam) -> None:
+    if not valid_name(p.name):
+        st.error("Name must be letters, digits and _ only, not starting with a digit.")
+    elif p.name in names_in_use:
+        st.error(f"'{p.name}' is already used.")
+    else:
+        params.append(p)
+        save_params(PARAMS_FILE, params)
+        st.rerun()
+
 
 
 def color_args(frame: pd.DataFrame) -> dict:
@@ -328,6 +377,14 @@ with tab_cov:
                "Shows which researchers left which columns empty.")
 
 
+with tab_nd:
+    nondim_tab.render(
+        ds, df, df_all, params, unit_text=unit_text, set_unit=set_unit,
+        save_params=lambda: save_params(PARAMS_FILE, params), label=label,
+        show_fig=show_fig, style_fig=style_fig,
+    )
+
+
 with tab_params:
     st.subheader("Custom parameters")
     st.write("Extra parameters live in `custom_parameters.json`, not in the workbook. "
@@ -348,18 +405,6 @@ with tab_params:
             save_params(PARAMS_FILE, params)
             st.rerun()
 
-    names_in_use = set(cols) | {p.name for p in params}
-
-    def add_param(p: CustomParam) -> None:
-        if not valid_name(p.name):
-            st.error("Name must be letters, digits and _ only, not starting with a digit.")
-        elif p.name in names_in_use:
-            st.error(f"'{p.name}' is already used.")
-        else:
-            params.append(p)
-            save_params(PARAMS_FILE, params)
-            st.rerun()
-
     kind = st.radio("Add a new", ["formula", "constant", "lookup"], horizontal=True,
                     format_func={"formula": "Formula (new column)", "constant": "Constant",
                                  "lookup": "Value per category (e.g. elastic modulus per material)"}.get)
@@ -370,11 +415,19 @@ with tab_params:
             unit = b.text_input("Unit", placeholder="e.g. √m")
             formula = st.text_input("Formula", placeholder="e.g. K / E_mod")
             desc = st.text_input("Description (optional)")
+            skip_check = st.checkbox(
+                "Skip the unit check", help="Empirical fits (like yield strength from %CW) "
+                "have coefficients with hidden units, so their dimensions cannot be checked.")
             if st.form_submit_button("Add formula"):
                 try:
                     check_formula(formula, names_in_use)
-                    add_param(CustomParam(name=name, kind="formula", unit=unit,
-                                          description=desc, formula=formula))
+                    problem = "" if skip_check else nondim_tab.formula_unit_problem(
+                        formula, unit, unit_or_none)
+                    if problem:
+                        st.error(problem + " Fix the unit, or tick 'Skip the unit check'.")
+                    else:
+                        add_param(CustomParam(name=name, kind="formula", unit=unit,
+                                              description=desc, formula=formula))
                 except FormulaError as exc:
                     st.error(str(exc))
     elif kind == "constant":
