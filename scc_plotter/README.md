@@ -28,50 +28,37 @@ You can also upload a workbook from the sidebar instead of using `data/`.
 
 ## What it does
 
-**Sidebar**
-- **X / Y axis**: any numeric column, or any custom parameter. Log X / Log Y.
-- **Colour by**: a category (Lab, Material, Condition, highlight flags) or a
-  number (e.g. Temp). The most frequent categories get the colours; the rest are
-  grouped as "Other". A category keeps its colour when you filter.
-- **Filters**: "Only PWR Mainstream Data" / "Only PWR Representative HAZ Data"
-  (read from the green highlights in the workbook), Lab, Material, Condition,
-  and range sliders for any numeric parameter.
+On first start a **3-minute tutorial** walks you through the app. Restart it
+anytime with **❓ Tutorial** in the sidebar.
 
-**Tabs**
-- **Plot**: the scatter plot. "Suggested plots" contains ready-made views with a
-  short reason for each (K-dependence, Arrhenius, cold work, H₂, O₂, Cl⁻, SO₄²⁻,
-  data quality, and a consistency check). The line above the plot says how many
-  rows were left out and why (empty cells, zero on a log axis).
-- **Y vs every parameter**: one small plot per parameter against the same Y, to
-  see quickly which parameters seem to matter.
-- **Data coverage**: % of filled cells per lab (or material) and column, so you
-  can see which researchers did not report which parameters.
-- **Nondimensionalize**: dimensional analysis in three steps.
-  1. *Variables and units*: pick variables; the app reads each unit (mm/s, MPa√m,
-     °C, J/(mol·K), µm, m²/s …) into SI dimensions M, L, T, Θ, N. Units it cannot
-     read are flagged and can be corrected in the table (saved in
-     `unit_overrides.json`). Constants are marked: they only shift the axes.
-  2. *π groups*: the Buckingham π theorem gives n − k groups. Choose the
-     repeating variables (or let the app choose), then add the groups as
-     parameters. All groups are computed in SI, so they are pure numbers. You
-     can also type a group of your own and check that it is dimensionless.
-  3. *Collapse score*: π plot vs the raw plot it should beat, on the same rows.
-     Scatter = SD of log10(Y) around a fitted curve (0.3 decades = factor 2).
-     Held-out = refit without one lab at a time and test on that lab.
-     Constants in a group cannot change either number.
+The **sidebar** decides *which data* you look at ("Only PWR Mainstream Data",
+Lab, Material). **Expert mode** at the bottom of the sidebar shows advanced
+options (more filters, range sliders, choosing measuring sticks, curve type).
 
-  **Matches**: one idea at a time. "Set up Match 1" adds the parameters it needs
-  (σy from %CW per MRP-458, Q, R, T_K, and placeholder constants d and D0) and
-  builds π(CGR) = CGR·d/D, π(K) = K/(σy·√d) and π(Q) = Q/(R·T).
-- **Custom parameters**: add parameters that are not in the workbook, without
-  touching the workbook:
-  - *Formula*: e.g. `1000 / (Temp + 273.15)` or `K / E_mod`
-  - *Constant*: e.g. `R = 8.314`
-  - *Value per category*: e.g. elastic modulus per Material, typed in a table.
-  They are saved in `custom_parameters.json` and appear in every axis menu.
-  A new formula's dimensions are checked against the unit you give it
-  (tick "Skip the unit check" for empirical fits with hidden-unit coefficients).
-- **Data table**: the filtered rows, with CSV download.
+The app has four areas:
+
+| Area | Question it answers |
+|---|---|
+| 👀 **Look** | What does the data show? Any Y against any X, or Y against every parameter. Suggested views give ready-made starting points. |
+| 🔥 **Test an idea** | Does my idea reveal a pattern? A *match* in 4 guided steps: idea → quantities and units → unit-free combinations (Buckingham π) → verdict. |
+| 🗂 **Data** | Who measured what (coverage), the rows themselves, and adding quantities that are not in the workbook (constants, formulas, a value per material). |
+| 📖 **Learn** | Short articles: basics, dimensional analysis from zero, reading results, what the research says, our method, traps, and the **Cave map** of what each match taught. |
+
+Every page has a 👉 **What to do next** line, and ⓘ icons explain each term in
+one sentence.
+
+**The verdict** compares the unit-free combinations with the raw plot on the
+same rows: 🟢 pattern found (≥10% tighter and it holds on labs left out of the
+fit), 🟡 no real change, 🔴 worse. Constants inside a combination cannot change
+the verdict.
+
+### Editing the help texts
+
+All texts are plain files in `help/`, editable with any text editor:
+
+- `help/glossary.md`: the one-sentence explanations behind the ⓘ icons
+- `help/articles/*.md`: the Learn articles (file name order = menu order)
+- `help/tutorial.md`: the tutorial steps
 
 ## How the workbook is read
 
