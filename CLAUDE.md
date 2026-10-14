@@ -33,10 +33,17 @@ to be repeated.
   curve (decades), plus leave-one-lab-out ("held-out") check. Verdict:
   ≥10% tighter on both → 🟢, ≥10% worse → 🔴, else 🟡. Constants cannot change
   the score (by design).
-- Interface rebuilt around the workflow: Look / Test an idea / Data / Learn,
-  guided 4-step match, "what to do next" lines, Expert-mode switch, glossary
-  tooltips, first-launch interactive tutorial. Help texts are editable
-  Markdown in `scc_plotter/help/`.
+- Interface built around the workflow: "what to do next" lines, Expert-mode
+  switch, glossary tooltips, first-launch interactive tutorial. Help texts are
+  editable Markdown in `scc_plotter/help/`.
+- **Version 5 (current):** areas Look / Data / Learn. Look has three views:
+  One plot, Y against every parameter, 3D plot. The "Test an idea" (match)
+  page was **removed on the tutor's advice**: nondimensionalizing comes later,
+  after upgrading the plotting tool and finding extra parameters. The engine
+  (`units.py`, `dimensional.py`, `collapse.py`, `matches.py`) stays in
+  `scc_core/`, tested but unused by the UI. On start, v5 deletes the exact
+  quantities Match 1 created (sigma_y, Q, d, D0, D, π groups) from the user's
+  `custom_parameters.json`; R, T_K, invT_1000, CGR_from_da and user-made ones stay.
 
 ## Research findings so far (details: `scc_plotter/help/articles/04_research.md`)
 
@@ -55,13 +62,14 @@ to be repeated.
   (0.637 → 0.634 decades). Split: the temperature part (Arrhenius, Q = 85 kJ/mol)
   helps (0.583, holds on held-out labs); K/σy hurts (CGR rises with σy, so
   strength must act as a driver, not as a measuring stick for K).
-- Open question for Match 2: how should yield strength enter?
+- Open question for Match 2 (later): how should yield strength enter?
 
 ## Code map (`scc_plotter/`)
 
-- `app.py`: loading, sidebar (which data), navigation, Expert mode.
-- `ui/`: `look.py`, `match.py` (4-step match + verdict), `data.py`,
-  `learn.py`, `tutorial.py`, `common.py` (Ctx, help-file readers).
+- `app.py`: loading, sidebar (which data), navigation, Expert mode, VERSION.
+- `ui/`: `look.py` (2D, every-parameter, 3D), `data.py`, `learn.py`,
+  `tutorial.py`, `common.py` (Ctx, help-file readers). The old 4-step match
+  page (`ui/match.py`) is in git history (commit 0b89b3a) if it is needed again.
 - `scc_core/`: `loader.py` (header detection, units, highlight flags),
   `custom_params.py` (constants/formulas/lookups → `custom_parameters.json`),
   `units.py` (unit parser → SI scale + M,L,T,Θ,N), `dimensional.py`
@@ -81,6 +89,7 @@ to be repeated.
 
 ## Status / next steps
 
-- The user is about to try the rebuilt app and tutorial and report which
-  steps are still unclear.
-- Then: discuss Match 2 (how yield strength enters), one match only.
+- Version 5 delivered (3D view added, match page removed).
+- Next, per the tutor: keep upgrading the plotting tool, then find the extra
+  parameters (material properties etc.) needed before returning to
+  nondimensional analysis. Match 2 (how yield strength enters) waits until then.

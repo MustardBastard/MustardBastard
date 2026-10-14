@@ -35,22 +35,21 @@ The **sidebar** decides *which data* you look at ("Only PWR Mainstream Data",
 Lab, Material). **Expert mode** at the bottom of the sidebar shows advanced
 options (more filters, range sliders, choosing measuring sticks, curve type).
 
-The app has four areas:
+The app has three areas:
 
 | Area | Question it answers |
 |---|---|
-| 👀 **Look** | What does the data show? Any Y against any X, or Y against every parameter. Suggested views give ready-made starting points. |
-| 🔥 **Test an idea** | Does my idea reveal a pattern? A *match* in 4 guided steps: idea → quantities and units → unit-free combinations (Buckingham π) → verdict. |
+| 👀 **Look** | What does the data show? Three views: one plot (any Y against any X), Y against every parameter, and a rotatable **3D plot** (two drivers at once, plus colour). Suggested views give ready-made starting points. |
 | 🗂 **Data** | Who measured what (coverage), the rows themselves, and adding quantities that are not in the workbook (constants, formulas, a value per material). |
 | 📖 **Learn** | Short articles: basics, dimensional analysis from zero, reading results, what the research says, our method, traps, and the **Cave map** of what each match taught. |
 
 Every page has a 👉 **What to do next** line, and ⓘ icons explain each term in
 one sentence.
 
-**The verdict** compares the unit-free combinations with the raw plot on the
-same rows: 🟢 pattern found (≥10% tighter and it holds on labs left out of the
-fit), 🟡 no real change, 🔴 worse. Constants inside a combination cannot change
-the verdict.
+Version 5 removed the "Test an idea" page: nondimensional analysis comes back
+later, once the extra parameters it needs have been found. The engine for it
+(units, Buckingham π groups, collapse score) is still in `scc_core/` and
+tested. Quantities that Match 1 created on your PC are removed on first start.
 
 ### Editing the help texts
 

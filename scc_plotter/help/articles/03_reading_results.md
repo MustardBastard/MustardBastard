@@ -17,36 +17,16 @@ One such step is called a **decade**.
 
 On log-log axes, a power law (y = a·xⁿ) is a straight line, and its slope is n.
 
-## The pattern check
+## Coming later: checking a pattern with numbers
 
-The app fits a curve through the points and measures how far they typically
-sit from it. It does this twice, on exactly the same rows:
+When we return to nondimensional analysis, the app will also *measure*
+patterns instead of only showing them:
 
-- for the **raw** plot (for example CGR against K), and
-- for the **unit-free combinations** of your idea.
+- **Pattern check:** fit a curve and measure how far points typically sit
+  from it, for the raw quantities and for the unit-free combinations.
+- **Held-out check:** hide one lab, fit the curve on the others, and test it
+  on the hidden lab. A real pattern predicts labs it has never seen.
+- **Traffic light:** 🟢 at least 10% tighter (and holds on hidden labs),
+  🟡 no real change, 🔴 at least 10% looser.
 
-If the combinations make the points sit closer to the curve, your idea
-explains part of the scatter.
-
-## The held-out check
-
-Fitting a curve to points always makes it look a bit better than it really
-is. So the app also hides one lab, fits the curve on all the others, and
-measures how well it predicts the hidden lab. Then it does the same for every
-other lab.
-
-A real pattern predicts labs it has never seen. A lucky one does not.
-
-## The traffic light
-
-| Light | Meaning |
-|---|---|
-| 🟢 Pattern found | At least 10% tighter, and it also holds on hidden labs. A torch. |
-| 🟡 No real change | Within ±10%. The idea explains nothing new. |
-| 🔴 Worse | At least 10% looser. The idea points the wrong way. A dead end, and a lesson. |
-
-## Constants never help
-
-Multiplying by a fixed number (the same in every row) only moves the axes.
-Both checks are built so that a constant cannot change them. That is why the
-app marks constants as "shifts axes only".
+Match 1 (see the Cave map) was judged this way.

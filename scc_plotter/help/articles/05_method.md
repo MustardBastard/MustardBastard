@@ -10,7 +10,7 @@ one **match** at a time:
 1. **Get a gist.** Look at the plain plots. What seems to matter?
 2. **Strike one match.** Turn the gist into one small, testable idea: a few
    quantities, one unit-free combination to check.
-3. **Look by its light.** Run the pattern check. Does the data pull together?
+3. **Look by its light.** Plot it. Does the data pull together?
 4. **Keep what you learned.** A torch (a real pattern) or a dead end. Both are
    progress. Write it in the cave map.
 5. **Use the torch to choose the next match.**
@@ -19,10 +19,10 @@ one **match** at a time:
 
 - **One idea per match.** If you change two things at once and it works, you
   will not know which one did it.
-- **Decide what "it worked" means before looking.** The app does this for
-  you: the traffic light thresholds are fixed.
-- **Trust the held-out check more than your eyes.** With 900 noisy points,
+- **Decide what "it worked" means before looking.** With 900 noisy points,
   something always looks like a pattern.
+- **Check a pattern on labs it was not found in.** If it only appears in one
+  lab's data, it may be about that lab.
 - **Treat the lab as a suspect, not as noise.** Colour by lab often.
 
 ## Inside and outside the box

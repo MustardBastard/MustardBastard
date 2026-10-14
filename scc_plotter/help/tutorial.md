@@ -40,43 +40,14 @@ Keep this in mind. A lot of the scatter is "who measured it", not physics.
 This view plots crack speed against **every parameter at once**. It is the
 fastest way to get a first gist of what might matter.
 
-## match_idea | Testing an idea: a match
+## three_d | Two drivers at once: 3D
 
-A **match** is one small idea, tested on its own.
+The **3D plot** puts crack speed **up**, K **across** and cold work in
+**depth**, so you see two drivers at the same time. Colour adds a fourth: the
+lab.
 
-Match 1's idea: crack speed depends on the pull K *compared with the steel's
-strength*, and on temperature. We have set it up for you.
-
-## match_vars | Step 2: quantities and their units
-
-Here are the quantities in the idea. For each one, the app reads its unit and
-breaks it into **ingredients**: mass M, length L, time T, temperature Θ and
-amount N.
-
-Rows marked "constant" are the same for every measurement. They only move the
-axes and can never make a pattern tighter.
-
-## match_groups | Step 3: unit-free combinations
-
-The app combines the quantities so that every ingredient cancels, leaving
-**pure numbers** (π groups).
-
-8 quantities − 5 ingredients = **3 combinations**. The **measuring sticks**
-are the quantities everything else is compared against.
-
-Press **Next** and the app will create the combinations and run the check.
-
-## match_verdict | Step 4: the verdict
-
-The traffic light compares the combinations with the raw plot, on the same
-rows:
-
-- 🟢 **Pattern found**: tighter, and holds on labs it never saw
-- 🟡 **No real change**
-- 🔴 **Worse**: the idea points the wrong way
-
-Match 1 gives 🟡. The Cave map (Learn page) explains why. Half of the idea
-helps and half hurts.
+Drag to rotate it. 3D is good for spotting a direction; confirm what you see
+with a normal 2D plot, because points can hide behind each other.
 
 ## data_area | The Data page
 
@@ -88,6 +59,6 @@ per material (like elastic modulus).
 
 **Learn** has short articles: the basics, dimensional analysis from zero,
 reading results, what the research says, our method, traps, and the
-**Cave map** of what each match taught us.
+**Cave map** of what earlier tests taught us.
 
 You can restart this tutorial anytime with **"? Tutorial"** in the sidebar.

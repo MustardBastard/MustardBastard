@@ -20,9 +20,11 @@ from scc_core.units import UnitError, parse_unit
 from ui import data as data_page
 from ui import learn as learn_page
 from ui import look as look_page
-from ui import match as match_page
 from ui import tutorial
-from ui.common import AREAS, DATA, LEARN, LOOK, MATCH, Ctx, hint
+from scc_core.matches import MATCH_1
+from ui.common import AREAS, DATA, LEARN, LOOK, Ctx, hint
+
+VERSION = 5
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
@@ -32,8 +34,7 @@ UNITS_FILE = APP_DIR / "unit_overrides.json"
 # Widget choices that must survive while their page is not shown. Streamlit forgets
 # the value of a widget that is not drawn in a run; writing it back keeps it.
 KEEP = ("x", "y", "color", "log_x", "log_y", "look_view", "max_colors", "use_symbols",
-        "nd_target", "nd_inputs", "nd_rep", "nd_prefix", "nd_group_Y", "nd_group_X",
-        "nd_raw_Y", "nd_raw_X", "nd_degree", "nd_color", "nd_own", "nd_own_name",
+        "x3", "y3", "z3", "log_x3", "log_y3", "log_z3",
         "data_view", "cov_group", "learn_article", "add_kind", "range_vars")
 KEEP_PREFIXES = ("flag_", "cat_", "range_")
 
@@ -81,8 +82,24 @@ else:
     st.stop()
 
 base = _load_bytes(raw_bytes, None)
+def _drop_match1(params: list[CustomParam]) -> list[CustomParam]:
+    """Version 5 removed the match page: remove what Match 1 created on the user's PC.
+
+    Only exact Match 1 items go (same name and description), plus its π groups;
+    anything the user added themselves stays.
+    """
+    made = {(p.name, p.description) for p in MATCH_1["params"]
+            if p.name not in ("R", "T_K")}
+    return [p for p in params if (p.name, p.description) not in made
+            and not p.description.startswith("π group")]
+
+
 if "params" not in st.session_state:
-    st.session_state["params"] = load_params(PARAMS_FILE)
+    loaded = load_params(PARAMS_FILE)
+    kept = _drop_match1(loaded)
+    if len(kept) != len(loaded):
+        save_params(PARAMS_FILE, kept)
+    st.session_state["params"] = kept
 params: list[CustomParam] = st.session_state["params"]
 ds, param_errors = apply_params(base, params)
 df_all = ds.df
@@ -154,7 +171,7 @@ def add_param(p: CustomParam) -> None:
 # --------------------------------------------------------------------------- sidebar
 
 st.sidebar.title("SCC Plotter")
-st.sidebar.caption("Stainless steel crack growth in PWR water")
+st.sidebar.caption(f"Stainless steel crack growth in PWR water · version {VERSION}")
 st.sidebar.button("❓ Tutorial", on_click=tutorial.start, args=(params, save),
                   help="A 3-minute guided tour that shows you each part of the app.")
 
@@ -243,8 +260,6 @@ ctx = Ctx(ds=ds, df=df, df_all=df_all, params=params, numeric=numeric,
 
 if area == LOOK:
     look_page.render(ctx)
-elif area == MATCH:
-    match_page.render(ctx)
 elif area == DATA:
     data_page.render(ctx, unit_or_none)
 else:

@@ -7,9 +7,9 @@ import plotly.express as px
 import streamlit as st
 
 from scc_core.custom_params import FUNCTIONS, CustomParam, FormulaError, check_formula
+from scc_core.dimensional import formula_unit_problem
 from scc_core.plotdata import SEQUENTIAL, coverage
 from ui.common import Ctx, next_step, show_fig, style_fig
-from ui.match import formula_unit_problem
 
 COVERAGE, TABLE, ADD = "Who measured what", "The rows", "Add a quantity"
 

@@ -12,7 +12,7 @@ from fractions import Fraction
 
 import numpy as np
 
-from .units import DIMLESS, Unit, UnitError, format_dims, same_dims
+from .units import DIMLESS, Unit, UnitError, format_dims, parse_unit, same_dims
 
 _DIMLESS_FUNCS = {"log", "ln", "log10", "exp", "sin", "cos", "tan"}
 
@@ -210,3 +210,24 @@ def is_dimensionless(formula: str, units: dict[str, Unit]) -> tuple[bool, str]:
     except (DimensionError, UnitError, SyntaxError) as exc:
         return False, str(exc)
     return same_dims(d, DIMLESS), format_dims(d)
+
+
+def formula_unit_problem(formula: str, declared: str, units_for) -> str:
+    """Message if a formula's dimensions disagree with its declared unit, else ''.
+
+    `units_for(name)` returns the Unit of a name, or None if it is not known.
+    """
+    try:
+        dec = parse_unit(declared)
+    except UnitError as exc:
+        return f"Declared unit: {exc}"
+    names = {n.id for n in ast.walk(ast.parse(formula, mode="eval")) if isinstance(n, ast.Name)}
+    units = {n: u for n in names if (u := units_for(n)) is not None}
+    try:
+        got = formula_dims(formula, units) or DIMLESS
+    except DimensionError as exc:
+        return str(exc)
+    if not same_dims(got, dec.dims):
+        return (f"The formula gives {format_dims(got)}, but the unit '{declared}' is "
+                f"{format_dims(dec.dims)}.")
+    return ""

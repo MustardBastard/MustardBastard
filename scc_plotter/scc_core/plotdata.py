@@ -76,6 +76,35 @@ def prepare_xy(df: pd.DataFrame, x: str, y: str, log_x: bool, log_y: bool) -> XY
     return XYResult(df[keep], n, int(miss_x.sum()), int(miss_y.sum()), int(nonpos.sum()))
 
 
+@dataclass
+class PointsResult:
+    data: pd.DataFrame
+    n_total: int
+    n_missing: int      # rows with an empty cell in any chosen axis
+    n_nonpositive: int  # rows dropped because a log axis cannot show values <= 0
+
+    def summary(self) -> str:
+        parts = [f"{len(self.data)} of {self.n_total} rows plotted"]
+        if self.n_missing:
+            parts.append(f"{self.n_missing} with an empty cell on one of the axes")
+        if self.n_nonpositive:
+            parts.append(f"{self.n_nonpositive} with zero/negative values on a log axis")
+        return " · ".join(parts)
+
+
+def prepare_points(df: pd.DataFrame, axes: list[str], logs: list[bool]) -> PointsResult:
+    """Rows that can be drawn with the given axes (any number of them, e.g. 3D)."""
+    ok = pd.Series(True, index=df.index)
+    for a in axes:
+        ok &= df[a].notna()
+    nonpos = pd.Series(False, index=df.index)
+    for a, lg in zip(axes, logs):
+        if lg:
+            nonpos |= ok & (df[a] <= 0)
+    keep = ok & ~nonpos
+    return PointsResult(df[keep], len(df), int((~ok).sum()), int(nonpos.sum()))
+
+
 def category_colors(full: pd.Series, max_colors: int = 8) -> tuple[pd.Series, dict[str, str], list[str]]:
     """Map a categorical column to display categories and colours.
 

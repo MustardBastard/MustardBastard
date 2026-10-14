@@ -21,7 +21,8 @@ across the whole cloud may really be a difference between labs. Colour by lab
 before believing a trend.
 
 **"Looks tighter" is not proof.**
-Use the held-out check. A pattern that does not predict hidden labs is luck.
+Check it with the sidebar filters: does it still show when you leave one lab
+out, or look at one lab at a time? A pattern that disappears is likely luck.
 
 **A log axis drops zeros.**
 Zero or negative values cannot be shown on a log axis. The line above every

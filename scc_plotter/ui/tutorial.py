@@ -10,10 +10,8 @@ from typing import Callable
 
 import streamlit as st
 
-from scc_core.matches import MATCH_1
-from ui.common import APP_DIR, DATA, LEARN, LOOK, MATCH, NONE, tutorial_steps
-from ui.look import EVERY, ONE
-from ui.match import create_groups, setup_match
+from ui.common import APP_DIR, DATA, LEARN, LOOK, NONE, tutorial_steps
+from ui.look import EVERY, ONE, THREE_D
 
 DONE_FILE = APP_DIR / ".tutorial_done"
 
@@ -31,18 +29,9 @@ def _act(step_id: str, params, save: Callable[[], None]) -> None:
         s.update(area=LOOK, look_view=ONE, x="K", y="CGR", log_x=True, log_y=True, color="Lab")
     elif step_id == "every_param":
         s.update(area=LOOK, look_view=EVERY, y="CGR", log_y=True)
-    elif step_id == "match_idea":
-        s.update(area=MATCH, m_step=1)
-    elif step_id == "match_vars":
-        setup_match(MATCH_1, params, save)
-        s.update(area=MATCH, m_step=2)
-    elif step_id == "match_groups":
-        s.update(area=MATCH, m_step=3)
-    elif step_id == "match_verdict":
-        s["area"] = MATCH
-        if s.get("pending_groups"):
-            create_groups(params, save)
-        s["m_step"] = 4
+    elif step_id == "three_d":
+        s.update(area=LOOK, look_view=THREE_D, z3="CGR", x3="K", y3="CW", log_z3=True,
+                 log_x3=True, log_y3=False, color="Lab")
     elif step_id == "data_area":
         s.update(area=DATA, data_view="Who measured what")
     elif step_id == "learn":

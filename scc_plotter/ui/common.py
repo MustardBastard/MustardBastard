@@ -18,8 +18,8 @@ APP_DIR = Path(__file__).resolve().parents[1]
 HELP_DIR = APP_DIR / "help"
 NONE = "(none)"
 
-AREAS = ["👀 Look", "🔥 Test an idea", "🗂 Data", "📖 Learn"]
-LOOK, MATCH, DATA, LEARN = AREAS
+AREAS = ["👀 Look", "🗂 Data", "📖 Learn"]
+LOOK, DATA, LEARN = AREAS
 
 
 @dataclass

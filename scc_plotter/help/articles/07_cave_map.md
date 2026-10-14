@@ -1,7 +1,11 @@
 # Cave map
 
-What each match taught us. Add a section after every match: the idea, the
+What each test taught us. Add a section after every test: the idea, the
 result, and the lesson.
+
+> Version 5 removed the "Test an idea" page; nondimensional analysis comes back
+> later (after we find the extra parameters we need). Match 1 below was done with
+> version 4 and is kept as knowledge.
 
 ## Match 1 — strength and temperature scales
 

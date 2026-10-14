@@ -1,4 +1,4 @@
-"""👀 Look: plot anything against anything, or Y against every parameter."""
+"""👀 Look: plot anything against anything, Y against every parameter, or in 3D."""
 
 from __future__ import annotations
 
@@ -11,12 +11,15 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 from scc_core.plotdata import (
-    EMPTY, OTHER, SEQUENTIAL, SYMBOLS, category_colors, prepare_xy,
+    EMPTY, OTHER, SEQUENTIAL, SYMBOLS, category_colors, prepare_points, prepare_xy,
 )
 from scc_core.suggestions import SUGGESTIONS
 from ui.common import NONE, Ctx, hint, meaning, next_step, show_fig, style_fig
 
-ONE, EVERY = "One plot", "Y against every parameter"
+ONE, EVERY, THREE_D = "One plot", "Y against every parameter", "3D plot"
+# Marker shapes that 3D plots can draw (fewer than 2D).
+SYMBOLS_3D = ["circle", "square", "diamond", "cross", "x",
+              "circle-open", "square-open", "diamond-open"]
 HOVER_COLS = ("Lab", "Material", "CT_ID", "Condition", "excel_row")
 
 
@@ -28,9 +31,10 @@ def apply_suggestion(s: dict) -> None:
 
 def _defaults(ctx: Ctx) -> None:
     for k, v in {"x": "K", "y": "CGR", "color": "Lab", "log_x": True, "log_y": True,
-                 "look_view": ONE}.items():
+                 "look_view": ONE, "x3": "K", "y3": "CW", "z3": "CGR", "log_x3": True,
+                 "log_y3": False, "log_z3": True}.items():
         st.session_state.setdefault(k, v)
-    for k in ("x", "y"):
+    for k in ("x", "y", "x3", "y3", "z3"):
         if st.session_state[k] not in ctx.numeric:
             st.session_state[k] = ctx.numeric[0]
     if st.session_state["color"] not in color_options(ctx):
@@ -52,10 +56,10 @@ def render(ctx: Ctx) -> None:
         next_step("set **Colour** to *Lab* to see how much of the scatter comes from who "
                   "measured it.")
     else:
-        next_step("try **Y against every parameter** for a quick screening, or go to "
-                  "**🔥 Test an idea** to check an idea with numbers.")
+        next_step("try **Y against every parameter** for a quick screening, or the "
+                  "**3D plot** to see two drivers at once.")
 
-    view = st.radio("View", [ONE, EVERY], horizontal=True, key="look_view",
+    view = st.radio("View", [ONE, EVERY, THREE_D], horizontal=True, key="look_view",
                     label_visibility="collapsed")
 
     with st.expander("💡 Suggested views", expanded=False):
@@ -69,8 +73,10 @@ def render(ctx: Ctx) -> None:
 
     if view == ONE:
         _one_plot(ctx)
-    else:
+    elif view == EVERY:
         _every_param(ctx)
+    else:
+        _three_d(ctx)
 
 
 def _one_plot(ctx: Ctx) -> None:
@@ -101,22 +107,7 @@ def _one_plot(ctx: Ctx) -> None:
     frame = res.data.copy()
     hover = [h for h in HOVER_COLS if h in frame.columns]
     labels = {x: label(x), y: label(y), **{h: label(h) for h in hover}}
-    kwargs = {}
-    if color == NONE:
-        kwargs = dict(color_discrete_sequence=[SEQUENTIAL[4]])
-    elif color in ctx.numeric:
-        kwargs = dict(color=color, color_continuous_scale=SEQUENTIAL)
-        labels[color] = label(color)
-    else:
-        src = color + "__label" if color in ctx.flags else color
-        display, cmap, order = category_colors(ctx.df_all[src], max_colors)
-        frame["__cat"] = display.loc[frame.index]
-        kwargs = dict(color="__cat", color_discrete_map=cmap, category_orders={"__cat": order})
-        labels["__cat"] = label(color)
-        if use_symbols:
-            smap = {c: SYMBOLS[i % len(SYMBOLS)] for i, c in enumerate(order)}
-            smap.update({OTHER: "circle-open", EMPTY: "circle-open"})
-            kwargs.update(symbol="__cat", symbol_map=smap)
+    kwargs = _color_kwargs(ctx, frame, color, labels, max_colors, use_symbols, SYMBOLS)
     fig = px.scatter(frame, x=x, y=y, log_x=log_x, log_y=log_y, hover_data=hover,
                      labels=labels, **kwargs)
     fig.update_traces(marker=dict(size=9, opacity=0.85, line=dict(width=1, color="#ffffff")))
@@ -127,6 +118,68 @@ def _one_plot(ctx: Ctx) -> None:
                 f"**X = {label(x)}**: {meaning(x, ctx)}")
     st.caption("Drag to zoom · double-click to reset · click a legend entry to hide it · "
                "camera icon saves a PNG.")
+
+
+def _color_kwargs(ctx: Ctx, frame: pd.DataFrame, color: str, labels: dict,
+                  max_colors: int, use_symbols: bool, symbols: list[str]) -> dict:
+    """Plotly-express keyword arguments for the chosen colour (adds to `labels`)."""
+    if color == NONE:
+        return dict(color_discrete_sequence=[SEQUENTIAL[4]])
+    if color in ctx.numeric:
+        labels[color] = ctx.label(color)
+        return dict(color=color, color_continuous_scale=SEQUENTIAL)
+    src = color + "__label" if color in ctx.flags else color
+    display, cmap, order = category_colors(ctx.df_all[src], max_colors)
+    frame["__cat"] = display.loc[frame.index]
+    labels["__cat"] = ctx.label(color)
+    kwargs = dict(color="__cat", color_discrete_map=cmap, category_orders={"__cat": order})
+    if use_symbols:
+        smap = {c: symbols[i % len(symbols)] for i, c in enumerate(order)}
+        smap.update({OTHER: "circle-open", EMPTY: "circle-open"})
+        kwargs.update(symbol="__cat", symbol_map=smap)
+    return kwargs
+
+
+def _three_d(ctx: Ctx) -> None:
+    label = ctx.label
+    c1, c2, c3, c4 = st.columns(4)
+    z = c1.selectbox("Up (vertical): what you want to explain", ctx.numeric, key="z3",
+                     format_func=label, help=hint("CGR"))
+    x = c2.selectbox("Across: first driver", ctx.numeric, key="x3", format_func=label)
+    y = c3.selectbox("Depth: second driver", ctx.numeric, key="y3", format_func=label)
+    color = c4.selectbox("Colour", color_options(ctx), key="color", format_func=label,
+                         help="A fourth piece of information, e.g. the Lab.")
+    a, b, c = st.columns(3)
+    log_z = a.checkbox("Log up", key="log_z3", help=hint("log_axis"))
+    log_x = b.checkbox("Log across", key="log_x3", help=hint("log_axis"))
+    log_y = c.checkbox("Log depth", key="log_y3", help=hint("log_axis"))
+    if len({x, y, z}) < 3:
+        st.warning("Choose three different quantities for the three axes.")
+        return
+
+    res = prepare_points(ctx.df, [x, y, z], [log_x, log_y, log_z])
+    st.caption(res.summary())
+    if res.data.empty:
+        st.warning("Nothing to plot with these choices.")
+        return
+    frame = res.data.copy()
+    hover = [h for h in HOVER_COLS if h in frame.columns]
+    labels = {x: label(x), y: label(y), z: label(z), **{h: label(h) for h in hover}}
+    kwargs = _color_kwargs(ctx, frame, color, labels, 8, True, SYMBOLS_3D)
+    fig = px.scatter_3d(frame, x=x, y=y, z=z, log_x=log_x, log_y=log_y, log_z=log_z,
+                        hover_data=hover, labels=labels, **kwargs)
+    fig.update_traces(marker=dict(size=4, opacity=0.85, line=dict(width=0)))
+    fig = style_fig(fig, height=680)
+    fig.update_layout(scene=dict(aspectmode="cube"), margin=dict(l=0, r=0, t=10, b=0))
+    show_fig(fig)
+
+    st.markdown(f"**What am I looking at?** Each point is one test.  \n"
+                f"**Up = {label(z)}**: {meaning(z, ctx)}  \n"
+                f"**Across = {label(x)}**: {meaning(x, ctx)}  \n"
+                f"**Depth = {label(y)}**: {meaning(y, ctx)}")
+    st.caption("Drag to rotate · scroll to zoom · double-click to reset. 3D is good for "
+               "spotting a direction; confirm what you see with a 2D plot, because points "
+               "can hide behind each other.")
 
 
 def _every_param(ctx: Ctx) -> None:

@@ -16,8 +16,8 @@ Speed is a length divided by a time, so crack growth rate has the
 ingredients **L·T⁻¹**. A stress is a force per area, **M·L⁻¹·T⁻²**. The stress
 intensity factor K is a stress times √length, **M·L⁻½·T⁻²**.
 
-The app reads each column's unit (mm/s, MPa√m, °C, …) and works out its
-ingredients for you.
+When we return to nondimensional analysis, the app will read each column's
+unit (mm/s, MPa√m, °C, …) and work out its ingredients for you.
 
 ## Unit-free numbers
 
