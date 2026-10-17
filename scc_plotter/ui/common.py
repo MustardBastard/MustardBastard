@@ -57,6 +57,9 @@ def style_fig(fig: go.Figure, height: int = 560) -> go.Figure:
     )
     fig.update_xaxes(showline=True, linecolor="#b5b3ad", gridcolor="#ecebe7", zeroline=False)
     fig.update_yaxes(showline=True, linecolor="#b5b3ad", gridcolor="#ecebe7", zeroline=False)
+    from ui import theme  # imported here: theme itself imports this module
+    if theme.old_map_on():
+        theme.apply_old_map(fig)
     return fig
 
 

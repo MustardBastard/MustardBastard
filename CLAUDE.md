@@ -45,6 +45,16 @@ to be repeated.
   quantities Match 1 created (sigma_y, Q, d, D0, D, π groups) from the user's
   `custom_parameters.json`; R, T_K, invT_1000, CGR_from_da and user-made ones stay.
 
+- **Version 6:** adds a hidden "old map" plot style (easter egg, user's request):
+  parchment, IM Fell English font, ink palette, map symbols, compass rose,
+  double border, "Hic sunt dracones". Toggled by clicking the plain-looking
+  "version N" text at the bottom of the sidebar 3 times within 4 s
+  (`ui/theme.py`, `knock()`); state kept in `scc_plotter/.old_map`. Keep it
+  hidden: do not mention it in the README or in-app help.
+- Open proposal (not yet built): when ≤8 groups are on screen, give each its
+  own colour instead of folding small labs into "Other"; also add the
+  Expert-mode colour options to the 3D plot.
+
 ## Research findings so far (details: `scc_plotter/help/articles/04_research.md`)
 
 - MRP-458 equation (median): CGR = 1.50e-18 · K^2.5 · HV^6 · exp(−85000/RT),
@@ -89,7 +99,7 @@ to be repeated.
 
 ## Status / next steps
 
-- Version 5 delivered (3D view added, match page removed).
+- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style.
 - Next, per the tutor: keep upgrading the plotting tool, then find the extra
   parameters (material properties etc.) needed before returning to
   nondimensional analysis. Match 2 (how yield strength enters) waits until then.

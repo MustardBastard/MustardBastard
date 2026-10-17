@@ -20,11 +20,11 @@ from scc_core.units import UnitError, parse_unit
 from ui import data as data_page
 from ui import learn as learn_page
 from ui import look as look_page
-from ui import tutorial
+from ui import theme, tutorial
 from scc_core.matches import MATCH_1
 from ui.common import AREAS, DATA, LEARN, LOOK, Ctx, hint
 
-VERSION = 5
+VERSION = 6
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
@@ -171,7 +171,7 @@ def add_param(p: CustomParam) -> None:
 # --------------------------------------------------------------------------- sidebar
 
 st.sidebar.title("SCC Plotter")
-st.sidebar.caption(f"Stainless steel crack growth in PWR water · version {VERSION}")
+st.sidebar.caption("Stainless steel crack growth in PWR water")
 st.sidebar.button("❓ Tutorial", on_click=tutorial.start, args=(params, save),
                   help="A 3-minute guided tour that shows you each part of the app.")
 
@@ -230,6 +230,12 @@ st.sidebar.divider()
 st.sidebar.toggle("Expert mode", key="expert",
                   help="Shows advanced options: more filters, range sliders, plot options, "
                        "choosing the measuring sticks yourself, and the type of fitted curve.")
+# Looks like plain text. It is not.
+st.sidebar.button(f"version {VERSION}", key="knock", on_click=theme.knock,
+                  help="Some say old doors open to those who knock three times.")
+st.markdown(theme.page_css(), unsafe_allow_html=True)
+if msg := st.session_state.pop("old_map_toast", None):
+    st.toast(msg)
 
 df = apply_filters(df_all, filters)
 

@@ -105,24 +105,28 @@ def prepare_points(df: pd.DataFrame, axes: list[str], logs: list[bool]) -> Point
     return PointsResult(df[keep], len(df), int((~ok).sum()), int(nonpos.sum()))
 
 
-def category_colors(full: pd.Series, max_colors: int = 8) -> tuple[pd.Series, dict[str, str], list[str]]:
+def category_colors(full: pd.Series, max_colors: int = 8, colors: list[str] | None = None,
+                    other_color: str = OTHER_COLOR, empty_color: str = EMPTY_COLOR,
+                    ) -> tuple[pd.Series, dict[str, str], list[str]]:
     """Map a categorical column to display categories and colours.
 
     The most frequent categories in the *full* (unfiltered) data get the colour
     slots, so filtering never repaints a category. The rest fold into "Other".
+    `colors` replaces the default palette (e.g. for the old-map style).
     Returns (display series, colour map, legend order).
     """
+    colors = colors or CATEGORICAL
     s = full.astype("string").fillna(EMPTY)
     counts = s[s != EMPTY].value_counts()
     top = list(counts.index[:max_colors])
     display = s.where(s.isin(top) | (s == EMPTY), OTHER)
-    cmap = {c: CATEGORICAL[i % len(CATEGORICAL)] for i, c in enumerate(top)}
+    cmap = {c: colors[i % len(colors)] for i, c in enumerate(top)}
     order = list(top)
     if (display == OTHER).any():
-        cmap[OTHER] = OTHER_COLOR
+        cmap[OTHER] = other_color
         order.append(OTHER)
     if (display == EMPTY).any():
-        cmap[EMPTY] = EMPTY_COLOR
+        cmap[EMPTY] = empty_color
         order.append(EMPTY)
     return display, cmap, order
 

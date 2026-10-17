@@ -8,7 +8,8 @@ import streamlit as st
 
 from scc_core.custom_params import FUNCTIONS, CustomParam, FormulaError, check_formula
 from scc_core.dimensional import formula_unit_problem
-from scc_core.plotdata import SEQUENTIAL, coverage
+from scc_core.plotdata import coverage
+from ui import theme
 from ui.common import Ctx, next_step, show_fig, style_fig
 
 COVERAGE, TABLE, ADD = "Who measured what", "The rows", "Add a quantity"
@@ -36,7 +37,7 @@ def _coverage(ctx: Ctx) -> None:
     fig = px.imshow(
         z.values, x=[ctx.label(c) for c in cov_cols],
         y=[f"{g} ({n})" for g, n in zip(z.index, table["rows"])],
-        color_continuous_scale=SEQUENTIAL, zmin=0, zmax=100, text_auto=".0f", aspect="auto",
+        color_continuous_scale=theme.palette().sequential, zmin=0, zmax=100, text_auto=".0f", aspect="auto",
         labels=dict(color="% filled"),
     )
     fig.update_xaxes(side="top")

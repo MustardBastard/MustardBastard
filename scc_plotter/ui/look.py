@@ -11,15 +11,14 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 from scc_core.plotdata import (
-    EMPTY, OTHER, SEQUENTIAL, SYMBOLS, category_colors, prepare_points, prepare_xy,
+    EMPTY, OTHER, category_colors, prepare_points, prepare_xy,
 )
+from ui import theme
 from scc_core.suggestions import SUGGESTIONS
 from ui.common import NONE, Ctx, hint, meaning, next_step, show_fig, style_fig
 
 ONE, EVERY, THREE_D = "One plot", "Y against every parameter", "3D plot"
-# Marker shapes that 3D plots can draw (fewer than 2D).
-SYMBOLS_3D = ["circle", "square", "diamond", "cross", "x",
-              "circle-open", "square-open", "diamond-open"]
+
 HOVER_COLS = ("Lab", "Material", "CT_ID", "Condition", "excel_row")
 
 
@@ -107,7 +106,8 @@ def _one_plot(ctx: Ctx) -> None:
     frame = res.data.copy()
     hover = [h for h in HOVER_COLS if h in frame.columns]
     labels = {x: label(x), y: label(y), **{h: label(h) for h in hover}}
-    kwargs = _color_kwargs(ctx, frame, color, labels, max_colors, use_symbols, SYMBOLS)
+    kwargs = _color_kwargs(ctx, frame, color, labels, max_colors, use_symbols,
+                           theme.palette().symbols)
     fig = px.scatter(frame, x=x, y=y, log_x=log_x, log_y=log_y, hover_data=hover,
                      labels=labels, **kwargs)
     fig.update_traces(marker=dict(size=9, opacity=0.85, line=dict(width=1, color="#ffffff")))
@@ -123,13 +123,15 @@ def _one_plot(ctx: Ctx) -> None:
 def _color_kwargs(ctx: Ctx, frame: pd.DataFrame, color: str, labels: dict,
                   max_colors: int, use_symbols: bool, symbols: list[str]) -> dict:
     """Plotly-express keyword arguments for the chosen colour (adds to `labels`)."""
+    pal = theme.palette()
     if color == NONE:
-        return dict(color_discrete_sequence=[SEQUENTIAL[4]])
+        return dict(color_discrete_sequence=[pal.single])
     if color in ctx.numeric:
         labels[color] = ctx.label(color)
-        return dict(color=color, color_continuous_scale=SEQUENTIAL)
+        return dict(color=color, color_continuous_scale=pal.sequential)
     src = color + "__label" if color in ctx.flags else color
-    display, cmap, order = category_colors(ctx.df_all[src], max_colors)
+    display, cmap, order = category_colors(ctx.df_all[src], max_colors, pal.categorical,
+                                           pal.other, pal.empty)
     frame["__cat"] = display.loc[frame.index]
     labels["__cat"] = ctx.label(color)
     kwargs = dict(color="__cat", color_discrete_map=cmap, category_orders={"__cat": order})
@@ -165,7 +167,7 @@ def _three_d(ctx: Ctx) -> None:
     frame = res.data.copy()
     hover = [h for h in HOVER_COLS if h in frame.columns]
     labels = {x: label(x), y: label(y), z: label(z), **{h: label(h) for h in hover}}
-    kwargs = _color_kwargs(ctx, frame, color, labels, 8, True, SYMBOLS_3D)
+    kwargs = _color_kwargs(ctx, frame, color, labels, 8, True, theme.palette().symbols_3d)
     fig = px.scatter_3d(frame, x=x, y=y, z=z, log_x=log_x, log_y=log_y, log_z=log_z,
                         hover_data=hover, labels=labels, **kwargs)
     fig.update_traces(marker=dict(size=4, opacity=0.85, line=dict(width=0)))
@@ -201,7 +203,7 @@ def _every_param(ctx: Ctx) -> None:
         row, col = i // ncols + 1, i % ncols + 1
         fig.add_trace(go.Scatter(
             x=r.data[v], y=r.data[yy], mode="markers", showlegend=False,
-            marker=dict(size=6, color=SEQUENTIAL[4], opacity=0.6),
+            marker=dict(size=6, color=theme.palette().single, opacity=0.6),
             customdata=r.data[hover].astype(str).values if hover else None,
             hovertemplate=f"{label(v)}: %{{x}}<br>{label(yy)}: %{{y}}"
                           + "".join(f"<br>{h}: %{{customdata[{j}]}}" for j, h in enumerate(hover))

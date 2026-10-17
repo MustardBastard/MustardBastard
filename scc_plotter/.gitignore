@@ -8,3 +8,4 @@ _params_test.json
 .venv/
 unit_overrides.json
 .tutorial_done
+.old_map
