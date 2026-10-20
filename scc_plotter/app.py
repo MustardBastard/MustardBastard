@@ -6,6 +6,8 @@ Run with:   streamlit run app.py
 from __future__ import annotations
 
 import io
+import json
+from dataclasses import asdict
 from pathlib import Path
 
 import streamlit as st
@@ -20,11 +22,11 @@ from scc_core.units import UnitError, parse_unit
 from ui import data as data_page
 from ui import learn as learn_page
 from ui import look as look_page
-from ui import theme, tutorial
+from ui import enrich, theme, tutorial
 from scc_core.matches import MATCH_1
 from ui.common import AREAS, DATA, LEARN, LOOK, Ctx, hint
 
-VERSION = 6
+VERSION = 7
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
@@ -81,7 +83,8 @@ else:
             "the sidebar under **Workbook**.")
     st.stop()
 
-base = _load_bytes(raw_bytes, None)
+
+
 def _drop_match1(params: list[CustomParam]) -> list[CustomParam]:
     """Version 5 removed the match page: remove what Match 1 created on the user's PC.
 
@@ -94,6 +97,13 @@ def _drop_match1(params: list[CustomParam]) -> list[CustomParam]:
             and not p.description.startswith("π group")]
 
 
+@st.cache_data(show_spinner="Calculating added quantities …")
+def _apply(raw: bytes, params_json: str, table: str):
+    """apply_params, cached on the workbook, the parameter list and the property table."""
+    plist = [CustomParam(**d) for d in json.loads(params_json)]
+    return apply_params(_load_bytes(raw, None), plist, enrich.tables_from(table))
+
+
 if "params" not in st.session_state:
     loaded = load_params(PARAMS_FILE)
     kept = _drop_match1(loaded)
@@ -101,7 +111,8 @@ if "params" not in st.session_state:
         save_params(PARAMS_FILE, kept)
     st.session_state["params"] = kept
 params: list[CustomParam] = st.session_state["params"]
-ds, param_errors = apply_params(base, params)
+ds, param_errors = _apply(raw_bytes, json.dumps([asdict(p) for p in params]),
+                          enrich.table_text())
 df_all = ds.df
 cols = ds.columns
 sb_file.caption(f"{source_name} · sheet '{ds.sheet}' · {len(df_all)} rows")

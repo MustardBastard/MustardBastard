@@ -51,6 +51,14 @@ to be repeated.
   "version N" text at the bottom of the sidebar 3 times within 4 s
   (`ui/theme.py`, `knock()`); state kept in `scc_plotter/.old_map`. Keep it
   hidden: do not mention it in the README or in-app help.
+- **Version 7:** data enrichment (`scc_core/enrichment.py`, UI `ui/enrich.py`,
+  Data → "Auto-fill properties"). New parameter kind `enriched` (field
+  `property`). Mechanical (approx. ASME II-D, unverified — user can override via
+  `data/material_properties.csv`), water chemistry (Ni/NiO H2, pH_T/pH_300 B/Li
+  model ~0.1–0.2 high vs MRP-458, ECP_H2 for hydrogenated water), composition
+  (ASTM A240 ranges). No web scraping: JRC MatDB / NIMS MatNavi need accounts and
+  have no open API; only a user-supplied CSV URL can be downloaded.
+  `apply_params` is cached in app.py via `_apply`.
 - Open proposal (not yet built): when ≤8 groups are on screen, give each its
   own colour instead of folding small labs into "Other"; also add the
   Expert-mode colour options to the 3D plot.
@@ -86,7 +94,7 @@ to be repeated.
   (Buckingham, formula dimensions, SI rewrite), `collapse.py` (score),
   `matches.py` (Match 1 definition), `plotdata.py`, `suggestions.py`.
 - `help/`: `glossary.md`, `articles/*.md`, `tutorial.md`.
-- Tests: `python scc_plotter/tests/test_core.py` (no xlsx needed).
+- Tests: `python scc_plotter/tests/test_core.py` and `tests/test_enrichment.py` (no xlsx needed).
 - Run: `run_app.bat` (creates `.venv`, installs requirements, starts Streamlit).
 
 ## Environment notes
@@ -99,7 +107,7 @@ to be repeated.
 
 ## Status / next steps
 
-- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style.
+- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties.
 - Next, per the tutor: keep upgrading the plotting tool, then find the extra
   parameters (material properties etc.) needed before returning to
   nondimensional analysis. Match 2 (how yield strength enters) waits until then.

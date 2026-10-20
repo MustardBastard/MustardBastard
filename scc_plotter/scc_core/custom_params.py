@@ -42,7 +42,7 @@ _ALLOWED_NODES = (
 @dataclass
 class CustomParam:
     name: str                 # identifier used in formulas and as column name
-    kind: str                 # "constant", "lookup" or "formula"
+    kind: str                 # "constant", "lookup", "formula" or "enriched"
     unit: str = ""
     description: str = ""
     value: float | None = None              # constant
@@ -50,6 +50,7 @@ class CustomParam:
     key_column: str = ""                    # lookup: column whose categories are keys
     mapping: dict[str, float] = field(default_factory=dict)  # lookup
     default: float | None = None            # lookup: value for unlisted categories
+    property: str = ""                      # enriched: key in scc_core.enrichment
 
 
 class FormulaError(ValueError):
@@ -97,7 +98,8 @@ def evaluate_formula(formula: str, df: pd.DataFrame, constants: dict[str, float]
     return s.replace([np.inf, -np.inf], np.nan)
 
 
-def apply_params(ds: Dataset, params: list[CustomParam]) -> tuple[Dataset, list[str]]:
+def apply_params(ds: Dataset, params: list[CustomParam],
+                 tables=None) -> tuple[Dataset, list[str]]:
     """Return a copy of the dataset with custom parameters added as columns.
 
     Parameters are applied in list order, so a formula may use earlier ones.
@@ -122,6 +124,13 @@ def apply_params(ds: Dataset, params: list[CustomParam]) -> tuple[Dataset, list[
             if p.kind == "formula":
                 df[p.name] = evaluate_formula(p.formula, df, constants)
                 note = p.description or f"= {p.formula}"
+            elif p.kind == "enriched":
+                from .enrichment import compute  # local: enrichment is optional
+                try:
+                    df[p.name] = compute(p.property or p.name, df, tables).to_numpy()
+                except KeyError as exc:
+                    raise FormulaError(str(exc).strip("'\"")) from None
+                note = p.description
             elif p.kind == "lookup":
                 if p.key_column not in df.columns:
                     raise FormulaError(f"Lookup column '{p.key_column}' not found")

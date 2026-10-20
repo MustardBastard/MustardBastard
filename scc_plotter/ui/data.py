@@ -12,16 +12,20 @@ from scc_core.plotdata import coverage
 from ui import theme
 from ui.common import Ctx, next_step, show_fig, style_fig
 
-COVERAGE, TABLE, ADD = "Who measured what", "The rows", "Add a quantity"
+COVERAGE, TABLE, ENRICH, ADD = ("Who measured what", "The rows", "Auto-fill properties",
+                                 "Add a quantity")
 
 
 def render(ctx: Ctx, unit_or_none) -> None:
-    view = st.radio("View", [COVERAGE, TABLE, ADD], horizontal=True, key="data_view",
+    view = st.radio("View", [COVERAGE, TABLE, ENRICH, ADD], horizontal=True, key="data_view",
                     label_visibility="collapsed")
     if view == COVERAGE:
         _coverage(ctx)
     elif view == TABLE:
         _table(ctx)
+    elif view == ENRICH:
+        from ui import enrich
+        enrich.render(ctx)
     else:
         _add(ctx, unit_or_none)
 
@@ -73,6 +77,8 @@ def _add(ctx: Ctx, unit_or_none) -> None:
             desc = f"= {p.value:g}"
         elif p.kind == "formula":
             desc = f"= `{p.formula}`" if len(p.formula) < 80 else "(formula)"
+        elif p.kind == "enriched":
+            desc = "auto-filled property"
         else:
             desc = f"one value per {p.key_column} ({len(p.mapping)} set, default {p.default})"
         a.markdown(f"**{p.name}** [{p.unit or '–'}] · {desc}  \n"

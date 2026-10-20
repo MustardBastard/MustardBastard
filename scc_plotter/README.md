@@ -40,7 +40,7 @@ The app has three areas:
 | Area | Question it answers |
 |---|---|
 | 👀 **Look** | What does the data show? Three views: one plot (any Y against any X), Y against every parameter, and a rotatable **3D plot** (two drivers at once, plus colour). Suggested views give ready-made starting points. |
-| 🗂 **Data** | Who measured what (coverage), the rows themselves, and adding quantities that are not in the workbook (constants, formulas, a value per material). |
+| 🗂 **Data** | Who measured what (coverage), the rows themselves, **auto-filled properties** (see below), and adding quantities that are not in the workbook (constants, formulas, a value per material). |
 | 📖 **Learn** | Short articles: basics, dimensional analysis from zero, reading results, what the research says, our method, traps, and the **Cave map** of what each match taught. |
 
 Every page has a 👉 **What to do next** line, and ⓘ icons explain each term in
@@ -50,6 +50,26 @@ Version 5 removed the "Test an idea" page: nondimensional analysis comes back
 later, once the extra parameters it needs have been found. The engine for it
 (units, Buckingham π groups, collapse score) is still in `scc_core/` and
 tested. Quantities that Match 1 created on your PC are removed on first start.
+
+### Auto-filled properties (Data → Auto-fill properties)
+
+Columns calculated for every test from its material grade (304, 304L, 316, 316L,
+316NG, 347), temperature and water chemistry, for later nondimensional analysis.
+All offline (`scc_core/enrichment.py`):
+
+| Group | Columns | Source |
+|---|---|---|
+| Mechanical | E_T, YS_ann_T, UTS_ann_T, YS_cw_RT, YS_cw_T | Approximate ASME BPVC II-D (TM-1, Y-1, U) values for annealed plate; MRP-458 YS(%CW) fit |
+| Water chemistry | H2_NiNiO, H2_over_NiNiO, pH_T, pH_300, ECP_H2 | Attanasio & Morton Ni/NiO line; B/Li pH model (Mesmer 1972, Marshall & Franck 1981); H2/H2O electrode with Fernández-Prini H2 solubility |
+| Composition | Cr, Ni, Mo, C, Si, N, S (wt %) | ASTM A240 specification ranges (316NG: nuclear-grade spec) |
+
+Caveats: the ASME values could not be checked against the licensed code book;
+replace them with your own table (columns grade, property, temp_C, value; saved
+as `data/material_properties.csv`). The pH model reads about 0.1–0.2 high
+against values quoted in MRP-458. Rows with empty B/Li get no pH; ECP is only
+given for hydrogenated water with ≤ 5 ppb O2.
+
+Tests: `python tests/test_enrichment.py`.
 
 ### Editing the help texts
 
