@@ -22,11 +22,11 @@ from scc_core.units import UnitError, parse_unit
 from ui import data as data_page
 from ui import learn as learn_page
 from ui import look as look_page
-from ui import enrich, matters, theme, tutorial
+from ui import enrich, theme, tutorial
 from scc_core.matches import MATCH_1
-from ui.common import AREAS, DATA, LEARN, LOOK, MATTERS, Ctx, hint
+from ui.common import AREAS, DATA, LEARN, LOOK, Ctx, hint
 
-VERSION = 8
+VERSION = 9
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
@@ -278,8 +278,6 @@ ctx = Ctx(ds=ds, df=df, df_all=df_all, params=params, numeric=numeric,
 
 if area == LOOK:
     look_page.render(ctx)
-elif area == MATTERS:
-    matters.render(ctx)
 elif area == DATA:
     data_page.render(ctx, unit_or_none)
 else:

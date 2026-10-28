@@ -69,6 +69,10 @@ to be repeated.
   CGR plots in Look (one plot, 3D) and τ in every-parameter titles. Learn
   article 08. Tutor's folder (Kendall 1942, Efron bootstrap, textbooks) is in
   the user's Gmail Drive "statistics".
+- **Version 9:** the separate "📊 What matters" area was removed at the user's
+  request; the same analysis now lives on **🗂 Data → "What matters for CGR"**
+  (second view, next to "Who measured what"). Areas are Look / Data / Learn again.
+  Look badges and every-parameter τ titles unchanged (they point to the new place).
 - Open proposal (not yet built): when ≤8 groups are on screen, give each its
   own colour instead of folding small labs into "Other"; also add the
   Expert-mode colour options to the 3D plot.
@@ -117,7 +121,7 @@ to be repeated.
 
 ## Status / next steps
 
-- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties. Version 8 adds 📊 What matters (partial rank correlations).
+- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties. Version 8 adds What matters (partial rank correlations); version 9 moves it into the Data page.
 - Next, per the tutor: keep upgrading the plotting tool, then find the extra
   parameters (material properties etc.) needed before returning to
   nondimensional analysis. Match 2 (how yield strength enters) waits until then.

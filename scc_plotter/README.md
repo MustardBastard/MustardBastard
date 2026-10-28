@@ -35,13 +35,12 @@ The **sidebar** decides *which data* you look at ("Only PWR Mainstream Data",
 Lab, Material). **Expert mode** at the bottom of the sidebar shows advanced
 options (more filters, range sliders, choosing measuring sticks, curve type).
 
-The app has four areas:
+The app has three areas:
 
 | Area | Question it answers |
 |---|---|
 | 👀 **Look** | What does the data show? Three views: one plot (any Y against any X), Y against every parameter, and a rotatable **3D plot** (two drivers at once, plus colour). Suggested views give ready-made starting points. |
-| 📊 **What matters** | Which parameters go together with CGR once the others are taken out: Kendall partial rank correlation (τ) with bootstrap 95 % ranges, a summary sentence, a ○→● chart (plain vs. after removing other effects) and a table. The same result appears above every CGR plot in Look. |
-| 🗂 **Data** | Who measured what (coverage), the rows themselves, **auto-filled properties** (see below), and adding quantities that are not in the workbook (constants, formulas, a value per material). |
+| 🗂 **Data** | Who measured what (coverage), **what matters for CGR** (partial rank correlations, see below), the rows themselves, **auto-filled properties** (see below), and adding quantities that are not in the workbook (constants, formulas, a value per material). |
 | 📖 **Learn** | Short articles: basics, dimensional analysis from zero, reading results, what the research says, our method, traps, and the **Cave map** of what each match taught. |
 
 Every page has a 👉 **What to do next** line, and ⓘ icons explain each term in
@@ -52,7 +51,10 @@ later, once the extra parameters it needs have been found. The engine for it
 (units, Buckingham π groups, collapse score) is still in `scc_core/` and
 tested. Quantities that Match 1 created on your PC are removed on first start.
 
-### What matters (Kendall partial rank correlation)
+### What matters for CGR (Data page; Kendall partial rank correlation)
+
+On **🗂 Data → What matters for CGR**; the same result appears above every CGR
+plot in Look.
 
 Chosen with the tutor, following Kendall (1942, Biometrika 32:277) and Efron
 (1979) on the bootstrap (`scc_core/correlation.py`):

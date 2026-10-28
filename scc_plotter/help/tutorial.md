@@ -51,8 +51,8 @@ with a normal 2D plot, because points can hide behind each other.
 
 ## what_matters | What matters for crack growth?
 
-This page answers: **which parameters go together with CGR once the others are
-taken out?** Each parameter has two dots: ○ the plain link, and ● the link
+On the **🗂 Data** page, the view **"What matters for CGR"** answers: **which
+parameters go together with CGR once the others are taken out?** Each parameter has two dots: ○ the plain link, and ● the link
 after the other parameters' effects are removed, with a bar for how sure we are.
 
 If ○ and ● are far apart, the plain picture was misleading. A bar that crosses

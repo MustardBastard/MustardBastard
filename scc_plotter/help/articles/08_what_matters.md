@@ -1,4 +1,7 @@
-# What matters: reading the 📊 page
+# What matters: reading the results
+
+Find it on **🗂 Data → What matters for CGR**. The same result appears above
+every plot of CGR in 👀 Look.
 
 ## The question
 

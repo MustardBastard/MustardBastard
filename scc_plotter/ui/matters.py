@@ -1,4 +1,4 @@
-"""📊 What matters: which parameters go together with CGR, once the others are
+"""🗂 Data → What matters for CGR: which parameters go together with CGR, once the others are
 taken out (Kendall partial rank correlation with bootstrap ranges)."""
 
 from __future__ import annotations
@@ -86,7 +86,7 @@ def badge(ctx: Ctx, x: str, y: str) -> None:
         extra = (f" · after removing other effects τ = {p['ptau']:+.2f}" if ctrls else "")
         text = (f"<b>{label(x)} → {label(y)}</b> &nbsp; plain τ = <b>{p['tau']:+.2f}</b>"
                 f" ({corr.strength(p['tau'])}){extra} · {p['n']} rows"
-                f" <span style='opacity:.7'>· no range: open 📊 What matters for the full check</span>")
+                f" <span style='opacity:.7'>· no range: see 🗂 Data → What matters for CGR</span>")
         color = "#9a9893"
     st.markdown(f"<div style='border-left:4px solid {color};padding:6px 10px;margin:2px 0 6px;"
                 f"background:rgba(127,127,127,0.06);border-radius:4px;font-size:0.92rem'>"

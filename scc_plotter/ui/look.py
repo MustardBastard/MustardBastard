@@ -219,7 +219,7 @@ def _every_param(ctx: Ctx) -> None:
     show_fig(style_fig(fig, height=270 * nrows))
     st.caption(f"{label(yy)} against every numeric parameter, with the sidebar filters. "
                "τ in a title = link with CGR after removing the other effects (? = uncertain; "
-               "details in 📊 What matters). "
+               "details in 🗂 Data → What matters for CGR). "
                "A cloud with a clear slope suggests that parameter matters; a flat or "
                "shapeless cloud suggests it does not (or that it hardly varies in the data).")
 

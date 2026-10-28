@@ -12,15 +12,20 @@ from scc_core.plotdata import coverage
 from ui import theme
 from ui.common import Ctx, next_step, show_fig, style_fig
 
-COVERAGE, TABLE, ENRICH, ADD = ("Who measured what", "The rows", "Auto-fill properties",
+COVERAGE, MATTERS_VIEW, TABLE, ENRICH, ADD = ("Who measured what", "What matters for CGR",
+                                              "The rows", "Auto-fill properties",
                                  "Add a quantity")
 
 
 def render(ctx: Ctx, unit_or_none) -> None:
-    view = st.radio("View", [COVERAGE, TABLE, ENRICH, ADD], horizontal=True, key="data_view",
+    view = st.radio("View", [COVERAGE, MATTERS_VIEW, TABLE, ENRICH, ADD], horizontal=True,
+                    key="data_view",
                     label_visibility="collapsed")
     if view == COVERAGE:
         _coverage(ctx)
+    elif view == MATTERS_VIEW:
+        from ui import matters
+        matters.render(ctx)
     elif view == TABLE:
         _table(ctx)
     elif view == ENRICH:
