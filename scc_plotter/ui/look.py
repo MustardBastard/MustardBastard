@@ -13,7 +13,7 @@ from plotly.subplots import make_subplots
 from scc_core.plotdata import (
     EMPTY, OTHER, category_colors, prepare_points, prepare_xy,
 )
-from ui import theme
+from ui import matters, theme
 from scc_core.suggestions import SUGGESTIONS
 from ui.common import NONE, Ctx, hint, meaning, next_step, show_fig, style_fig
 
@@ -99,6 +99,7 @@ def _one_plot(ctx: Ctx) -> None:
             use_symbols = st.checkbox("Also vary marker shape", key="use_symbols")
 
     res = prepare_xy(ctx.df, x, y, log_x, log_y)
+    matters.badge(ctx, x, y)
     st.caption(res.summary())
     if res.data.empty:
         st.warning("Nothing to plot with these choices.")
@@ -160,6 +161,8 @@ def _three_d(ctx: Ctx) -> None:
         return
 
     res = prepare_points(ctx.df, [x, y, z], [log_x, log_y, log_z])
+    matters.badge(ctx, x, z)
+    matters.badge(ctx, y, z)
     st.caption(res.summary())
     if res.data.empty:
         st.warning("Nothing to plot with these choices.")
@@ -194,7 +197,8 @@ def _every_param(ctx: Ctx) -> None:
     ncols = 3
     nrows = math.ceil(len(xs) / ncols)
     results = {v: prepare_xy(ctx.df, v, yy, False, log_yy) for v in xs}
-    titles = [f"{label(v)}  (n={len(results[v].data)})" for v in xs]
+    titles = [f"{label(v)}  (n={len(results[v].data)}){matters.subplot_note(ctx, v, yy)}"
+              for v in xs]
     fig = make_subplots(rows=nrows, cols=ncols, subplot_titles=titles,
                         vertical_spacing=0.35 / max(nrows, 1), horizontal_spacing=0.06)
     hover = [h for h in HOVER_COLS if h in ctx.df.columns]
@@ -214,6 +218,8 @@ def _every_param(ctx: Ctx) -> None:
     fig.update_annotations(font_size=12)
     show_fig(style_fig(fig, height=270 * nrows))
     st.caption(f"{label(yy)} against every numeric parameter, with the sidebar filters. "
+               "τ in a title = link with CGR after removing the other effects (? = uncertain; "
+               "details in 📊 What matters). "
                "A cloud with a clear slope suggests that parameter matters; a flat or "
                "shapeless cloud suggests it does not (or that it hardly varies in the data).")
 

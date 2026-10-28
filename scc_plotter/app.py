@@ -22,11 +22,11 @@ from scc_core.units import UnitError, parse_unit
 from ui import data as data_page
 from ui import learn as learn_page
 from ui import look as look_page
-from ui import enrich, theme, tutorial
+from ui import enrich, matters, theme, tutorial
 from scc_core.matches import MATCH_1
-from ui.common import AREAS, DATA, LEARN, LOOK, Ctx, hint
+from ui.common import AREAS, DATA, LEARN, LOOK, MATTERS, Ctx, hint
 
-VERSION = 7
+VERSION = 8
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
@@ -37,7 +37,8 @@ UNITS_FILE = APP_DIR / "unit_overrides.json"
 # the value of a widget that is not drawn in a run; writing it back keeps it.
 KEEP = ("x", "y", "color", "log_x", "log_y", "look_view", "max_colors", "use_symbols",
         "x3", "y3", "z3", "log_x3", "log_y3", "log_z3",
-        "data_view", "cov_group", "learn_article", "add_kind", "range_vars")
+        "data_view", "cov_group", "learn_article", "add_kind", "range_vars",
+        "corr_measure", "corr_chem")
 KEEP_PREFIXES = ("flag_", "cat_", "range_")
 
 st.set_page_config(page_title="SCC Plotter", layout="wide", initial_sidebar_state="expanded")
@@ -277,6 +278,8 @@ ctx = Ctx(ds=ds, df=df, df_all=df_all, params=params, numeric=numeric,
 
 if area == LOOK:
     look_page.render(ctx)
+elif area == MATTERS:
+    matters.render(ctx)
 elif area == DATA:
     data_page.render(ctx, unit_or_none)
 else:

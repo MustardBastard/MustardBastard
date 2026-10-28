@@ -101,3 +101,15 @@ A quantity with the same value in every row. Multiplying by it only moves the ax
 
 ## match
 One small idea, tested on its own. Each match either lights a torch (a pattern) or closes a dead end. Both are progress.
+
+## kendall_tau
+Kendall's τ: pick two tests at random; τ = chance they are in the same order for both quantities minus the chance they are in opposite order. τ = +0.30 means 65 % of pairs agree.
+
+## partial_tau
+τ after removing other effects (Kendall's partial τ): how strongly CGR goes with this parameter when the other parameters are held fixed. The 95 % range shows how sure we are; if it crosses 0 the data cannot tell.
+
+## bootstrap
+Bootstrap: recalculating the result on 1000 resampled versions of the data (whole specimens drawn with replacement) to see how much it could vary by chance.
+
+## controls
+Parameters whose effect is taken out before measuring a link, like holding the temperature fixed when comparing two cold-work levels.

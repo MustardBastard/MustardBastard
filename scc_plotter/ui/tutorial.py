@@ -10,7 +10,7 @@ from typing import Callable
 
 import streamlit as st
 
-from ui.common import APP_DIR, DATA, LEARN, LOOK, NONE, tutorial_steps
+from ui.common import APP_DIR, DATA, LEARN, LOOK, MATTERS, NONE, tutorial_steps
 from ui.look import EVERY, ONE, THREE_D
 
 DONE_FILE = APP_DIR / ".tutorial_done"
@@ -32,6 +32,8 @@ def _act(step_id: str, params, save: Callable[[], None]) -> None:
     elif step_id == "three_d":
         s.update(area=LOOK, look_view=THREE_D, z3="CGR", x3="K", y3="CW", log_z3=True,
                  log_x3=True, log_y3=False, color="Lab")
+    elif step_id == "what_matters":
+        s.update(area=MATTERS)
     elif step_id == "data_area":
         s.update(area=DATA, data_view="Who measured what")
     elif step_id == "learn":

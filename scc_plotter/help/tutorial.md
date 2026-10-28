@@ -49,6 +49,16 @@ lab.
 Drag to rotate it. 3D is good for spotting a direction; confirm what you see
 with a normal 2D plot, because points can hide behind each other.
 
+## what_matters | What matters for crack growth?
+
+This page answers: **which parameters go together with CGR once the others are
+taken out?** Each parameter has two dots: ○ the plain link, and ● the link
+after the other parameters' effects are removed, with a bar for how sure we are.
+
+If ○ and ● are far apart, the plain picture was misleading. A bar that crosses
+0 means the data cannot tell. The same result also appears above every plot of
+CGR in 👀 Look.
+
 ## data_area | The Data page
 
 **Data** shows who measured what (coverage), the raw table, and lets you add

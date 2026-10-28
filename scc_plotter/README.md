@@ -35,11 +35,12 @@ The **sidebar** decides *which data* you look at ("Only PWR Mainstream Data",
 Lab, Material). **Expert mode** at the bottom of the sidebar shows advanced
 options (more filters, range sliders, choosing measuring sticks, curve type).
 
-The app has three areas:
+The app has four areas:
 
 | Area | Question it answers |
 |---|---|
 | 👀 **Look** | What does the data show? Three views: one plot (any Y against any X), Y against every parameter, and a rotatable **3D plot** (two drivers at once, plus colour). Suggested views give ready-made starting points. |
+| 📊 **What matters** | Which parameters go together with CGR once the others are taken out: Kendall partial rank correlation (τ) with bootstrap 95 % ranges, a summary sentence, a ○→● chart (plain vs. after removing other effects) and a table. The same result appears above every CGR plot in Look. |
 | 🗂 **Data** | Who measured what (coverage), the rows themselves, **auto-filled properties** (see below), and adding quantities that are not in the workbook (constants, formulas, a value per material). |
 | 📖 **Learn** | Short articles: basics, dimensional analysis from zero, reading results, what the research says, our method, traps, and the **Cave map** of what each match taught. |
 
@@ -50,6 +51,22 @@ Version 5 removed the "Test an idea" page: nondimensional analysis comes back
 later, once the extra parameters it needs have been found. The engine for it
 (units, Buckingham π groups, collapse score) is still in `scc_core/` and
 tested. Quantities that Match 1 created on your PC are removed on first start.
+
+### What matters (Kendall partial rank correlation)
+
+Chosen with the tutor, following Kendall (1942, Biometrika 32:277) and Efron
+(1979) on the bootstrap (`scc_core/correlation.py`):
+
+- Kendall τ-b between CGR and each parameter (handles the many tied values).
+- Partial τ: the link left after K, %CW, temperature, O2 and H2 are held fixed;
+  two visible switches add the measurement effects (quality score, test
+  duration; on by default) and the water chemistry (B, Li; off by default,
+  because rows without B/Li — whole labs — drop out). Each switch shows how
+  many rows and labs it removes.
+- 95 % ranges from 1000 bootstrap resamples of whole specimens.
+- Partial Spearman ρ as a method check.
+
+Tests: `python tests/test_correlation.py` (includes Kendall's own worked example).
 
 ### Auto-filled properties (Data → Auto-fill properties)
 

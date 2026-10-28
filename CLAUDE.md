@@ -59,6 +59,16 @@ to be repeated.
   (ASTM A240 ranges). No web scraping: JRC MatDB / NIMS MatNavi need accounts and
   have no open API; only a user-supplied CSV URL can be downloaded.
   `apply_params` is cached in app.py via `_apply`.
+- **Version 8 (tutor's request, email 20 Oct):** "📊 What matters" area
+  (`ui/matters.py`, engine `scc_core/correlation.py`): Kendall partial τ-b of CGR
+  vs each parameter (controls: K, CW, Temp, O2, H2; switch "measurement effects"
+  Score+dTime ON by default; switch "water chemistry" B+Li OFF by default; SO4/Cl
+  shown, never controls), 1000-rep specimen (Lab|CT_ID) cluster bootstrap 95 %
+  ranges via weighted quadratic forms (≈1 s), partial Spearman as check,
+  summary sentence, ○→● dumbbell chart, table, warnings. Result badges above
+  CGR plots in Look (one plot, 3D) and τ in every-parameter titles. Learn
+  article 08. Tutor's folder (Kendall 1942, Efron bootstrap, textbooks) is in
+  the user's Gmail Drive "statistics".
 - Open proposal (not yet built): when ≤8 groups are on screen, give each its
   own colour instead of folding small labs into "Other"; also add the
   Expert-mode colour options to the 3D plot.
@@ -94,7 +104,7 @@ to be repeated.
   (Buckingham, formula dimensions, SI rewrite), `collapse.py` (score),
   `matches.py` (Match 1 definition), `plotdata.py`, `suggestions.py`.
 - `help/`: `glossary.md`, `articles/*.md`, `tutorial.md`.
-- Tests: `python scc_plotter/tests/test_core.py` and `tests/test_enrichment.py` (no xlsx needed).
+- Tests: `python scc_plotter/tests/test_core.py`, `tests/test_enrichment.py`, `tests/test_correlation.py` (no xlsx needed).
 - Run: `run_app.bat` (creates `.venv`, installs requirements, starts Streamlit).
 
 ## Environment notes
@@ -107,7 +117,7 @@ to be repeated.
 
 ## Status / next steps
 
-- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties.
+- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties. Version 8 adds 📊 What matters (partial rank correlations).
 - Next, per the tutor: keep upgrading the plotting tool, then find the extra
   parameters (material properties etc.) needed before returning to
   nondimensional analysis. Match 2 (how yield strength enters) waits until then.
