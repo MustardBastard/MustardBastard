@@ -73,6 +73,15 @@ to be repeated.
   request; the same analysis now lives on **🗂 Data → "What matters for CGR"**
   (second view, next to "Who measured what"). Areas are Look / Data / Learn again.
   Look badges and every-parameter τ titles unchanged (they point to the new place).
+- **Version 10:** the two switches on "What matters for CGR" became one checkbox per
+  parameter in a ⚙ "Held fixed" expander (session keys `hold_<var>`, kept via the
+  `hold_` prefix in app.py): Physics + Measurement ticked by default, B/Li not;
+  "Added quantities" = the user's custom numeric columns, unticked, minus circular
+  ones (formula depends on CGR/da) and redundant ones (same/reverse rank order as an
+  existing parameter: `correlation.screen_added`). Each box shows the tests/labs it
+  costs; Reset to recommended; non-recommended choice noted in summary + table.
+- Next (agreed): synthetic-data validation experiment of the What-matters method,
+  compared with the EPRI papers (MRP-458 etc.). Goal: how valid are the tool's results.
 - Open proposal (not yet built): when ≤8 groups are on screen, give each its
   own colour instead of folding small labs into "Other"; also add the
   Expert-mode colour options to the 3D plot.
@@ -121,7 +130,7 @@ to be repeated.
 
 ## Status / next steps
 
-- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties. Version 8 adds What matters (partial rank correlations); version 9 moves it into the Data page.
+- Version 5 delivered (3D view added, match page removed). Version 6 adds the hidden old-map style. Version 7 adds auto-filled material/chemistry properties. Version 8 adds What matters (partial rank correlations); version 9 moves it into the Data page; version 10 replaces its switches with per-parameter checkboxes.
 - Next, per the tutor: keep upgrading the plotting tool, then find the extra
   parameters (material properties etc.) needed before returning to
   nondimensional analysis. Match 2 (how yield strength enters) waits until then.

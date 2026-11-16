@@ -60,11 +60,14 @@ Chosen with the tutor, following Kendall (1942, Biometrika 32:277) and Efron
 (1979) on the bootstrap (`scc_core/correlation.py`):
 
 - Kendall τ-b between CGR and each parameter (handles the many tied values).
-- Partial τ: the link left after K, %CW, temperature, O2 and H2 are held fixed;
-  two visible switches add the measurement effects (quality score, test
-  duration; on by default) and the water chemistry (B, Li; off by default,
-  because rows without B/Li — whole labs — drop out). Each switch shows how
-  many rows and labs it removes.
+- Partial τ: the link left after the ticked parameters are held fixed. A ⚙ box
+  has one checkbox per parameter, grouped: physics (K, %CW, temperature, O2,
+  H2) and measurement (quality score, test duration) ticked by default; water
+  chemistry (B, Li) unticked, because rows without B/Li (whole labs) drop out;
+  and the user's added quantities, unticked (ones made from CGR, or in the same
+  rank order as an existing parameter, e.g. T in kelvin, are not offered).
+  Each box shows how many tests and labs it costs; "Reset to recommended"
+  restores the defaults.
 - 95 % ranges from 1000 bootstrap resamples of whole specimens.
 - Partial Spearman ρ as a method check.
 

@@ -206,3 +206,45 @@ def point_estimate(df: pd.DataFrame, target: str, x: str, controls: list[str]) -
     if res is None:
         return None
     return {"tau": res.tau[1], "ptau": res.ptau[1], "n": res.n, "labs": res.labs}
+
+
+# --------------------------------------------------------------------------- added quantities
+
+def same_order(a: pd.Series, b: pd.Series, min_rows: int = 10) -> int:
+    """+1 if b puts the rows (where both have values) in exactly the same order as a,
+    −1 if in exactly the reverse order, 0 otherwise. Ties must match as well.
+
+    A quantity in the same or reverse order as another one (e.g. T in kelvin or
+    1000/T against Temp) carries no new information for a rank method."""
+    both = pd.concat([a, b], axis=1).dropna()
+    if len(both) < min_rows:
+        return 0
+    ra = both.iloc[:, 0].rank(method="dense")
+    if ra.equals(both.iloc[:, 1].rank(method="dense")):
+        return 1
+    if ra.equals((-both.iloc[:, 1]).rank(method="dense")):
+        return -1
+    return 0
+
+
+def screen_added(df: pd.DataFrame, added: list[str], base: list[str]
+                 ) -> tuple[list[str], dict[str, str]]:
+    """Split added quantities into usable ones and skipped ones (name -> reason).
+
+    Skipped: fewer than two different values, or the same/reverse order as a
+    base parameter or as an earlier usable added quantity."""
+    usable: list[str] = []
+    skipped: dict[str, str] = {}
+    for c in added:
+        s = pd.to_numeric(df[c], errors="coerce")
+        if s.nunique() < 2:
+            skipped[c] = "has only one value"
+            continue
+        for other in [b for b in base if b in df] + usable:
+            o = same_order(df[other], s)
+            if o:
+                skipped[c] = (f"same order as {other}" if o > 0 else f"reverse order of {other}")
+                break
+        else:
+            usable.append(c)
+    return usable, skipped

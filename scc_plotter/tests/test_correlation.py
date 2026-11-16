@@ -102,6 +102,21 @@ def test_point_estimate_and_strength_words():
         ["negligible", "weak", "moderate", "strong"]
 
 
+def test_same_order_and_screen_added():
+    df = _confounded()
+    df["T"] = np.where(df.index % 3 == 0, 290.0, 325.0)
+    df["T_K"] = df["T"] + 273.15
+    df["invT"] = 1000 / df["T_K"]
+    df["Kmix"] = df["K"] * df["O2"]
+    df["one"] = 1.0
+    assert C.same_order(df["T"], df["T_K"]) == 1 and C.same_order(df["T"], df["invT"]) == -1
+    assert C.same_order(df["K"], df["Kmix"]) == 0
+    usable, skipped = C.screen_added(df, ["T_K", "invT", "Kmix", "one"], ["T", "K", "O2"])
+    assert usable == ["Kmix"]
+    assert skipped == {"T_K": "same order as T", "invT": "reverse order of T",
+                       "one": "has only one value"}
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

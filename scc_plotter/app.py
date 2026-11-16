@@ -26,7 +26,7 @@ from ui import enrich, theme, tutorial
 from scc_core.matches import MATCH_1
 from ui.common import AREAS, DATA, LEARN, LOOK, Ctx, hint
 
-VERSION = 9
+VERSION = 10
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
@@ -37,9 +37,8 @@ UNITS_FILE = APP_DIR / "unit_overrides.json"
 # the value of a widget that is not drawn in a run; writing it back keeps it.
 KEEP = ("x", "y", "color", "log_x", "log_y", "look_view", "max_colors", "use_symbols",
         "x3", "y3", "z3", "log_x3", "log_y3", "log_z3",
-        "data_view", "cov_group", "learn_article", "add_kind", "range_vars",
-        "corr_measure", "corr_chem")
-KEEP_PREFIXES = ("flag_", "cat_", "range_")
+        "data_view", "cov_group", "learn_article", "add_kind", "range_vars")
+KEEP_PREFIXES = ("flag_", "cat_", "range_", "hold_")
 
 st.set_page_config(page_title="SCC Plotter", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""

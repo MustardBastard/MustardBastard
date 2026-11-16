@@ -3,6 +3,8 @@ taken out (Kendall partial rank correlation with bootstrap ranges)."""
 
 from __future__ import annotations
 
+import ast
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -13,26 +15,88 @@ from ui import theme
 from ui.common import Ctx, hint, next_step, show_fig, style_fig
 
 TARGET = "CGR"
-PHYSICS = ["K", "CW", "Temp", "O2", "H2"]          # test conditions, always controlled for
+OUTCOMES = {"CGR", "da"}                            # what is measured: never a cause
+PHYSICS = ["K", "CW", "Temp", "O2", "H2"]          # test conditions
 MEASUREMENT = ["Score", "dTime"]                    # how the test was run
 CHEMISTRY = ["B", "Li"]                             # PWR water additives (often empty)
-EXTRA = ["SO4", "Cl"]                               # impurities: shown, never controlled for
+EXTRA = ["SO4", "Cl"]                               # impurities: shown, never held fixed
+GROUPS = [("Physics", PHYSICS), ("Measurement", MEASUREMENT), ("Water chemistry", CHEMISTRY)]
+RECOMMENDED = set(PHYSICS + MEASUREMENT)
+ADDED = "Added quantities"
 B_REPS = 1000
 
 
-def settings() -> tuple[bool, bool]:
-    st.session_state.setdefault("corr_measure", True)
-    st.session_state.setdefault("corr_chem", False)
-    return bool(st.session_state["corr_measure"]), bool(st.session_state["corr_chem"])
+# --------------------------------------------------------------------------- settings
+
+def _key(v: str) -> str:
+    return f"hold_{v}"
 
 
-def controls_for(measure: bool, chem: bool, available) -> list[str]:
-    c = PHYSICS + (MEASUREMENT if measure else []) + (CHEMISTRY if chem else [])
-    return [v for v in c if v in available]
+def _depends_on_outcome(params, name: str, seen: set | None = None) -> bool:
+    """True if a custom quantity is (directly or through others) made from CGR / da."""
+    seen = seen or set()
+    if name in OUTCOMES:
+        return True
+    if name in seen:
+        return False
+    seen.add(name)
+    p = next((q for q in params if q.name == name), None)
+    if p is None:
+        return False
+    names: set[str] = set()
+    if p.kind == "formula" and p.formula:
+        try:
+            names = {n.id for n in ast.walk(ast.parse(p.formula, mode="eval"))
+                     if isinstance(n, ast.Name)}
+        except SyntaxError:
+            return True
+    elif p.kind == "lookup":
+        names = {p.key_column}
+    return any(_depends_on_outcome(params, n, seen) for n in names)
 
 
-def candidates(available) -> list[str]:
-    return [v for v in PHYSICS + MEASUREMENT + CHEMISTRY + EXTRA if v in available]
+def added_quantities(ctx: Ctx) -> tuple[list[str], dict[str, str]]:
+    """Quantities the user added (Data page) that can take part, and the ones left out."""
+    cols = ctx.cols
+    added = [c for c, info in cols.items() if info.source == "custom" and info.kind == "numeric"
+             and c in ctx.df_all and c != TARGET]
+    circular = {c for c in added if _depends_on_outcome(ctx.params, c)}
+    base = [v for v in PHYSICS + MEASUREMENT + CHEMISTRY + EXTRA if v in ctx.df_all]
+    usable, skipped = corr.screen_added(ctx.df_all, [c for c in added if c not in circular], base)
+    for c in circular:
+        skipped[c] = "made from the crack growth itself"
+    reasons = {c: (r if r.startswith("made") or r.startswith("has")
+                   else r.replace(r.split()[-1], ctx.label(r.split()[-1]))
+                   + ", adds nothing new") for c, r in skipped.items()}
+    return usable, reasons
+
+
+def _options(ctx: Ctx) -> list[str]:
+    """Every parameter that can be ticked, in display order."""
+    base = [v for v in PHYSICS + MEASUREMENT + CHEMISTRY if v in ctx.df.columns]
+    return base + added_quantities(ctx)[0]
+
+
+def held_fixed(ctx: Ctx) -> list[str]:
+    """The parameters ticked as 'held fixed' (defaults: physics and measurement)."""
+    opts = _options(ctx)
+    for v in opts:
+        st.session_state.setdefault(_key(v), v in RECOMMENDED)
+    return [v for v in opts if st.session_state[_key(v)]]
+
+
+def is_recommended(ctx: Ctx) -> bool:
+    return set(held_fixed(ctx)) == {v for v in _options(ctx) if v in RECOMMENDED}
+
+
+def _reset(opts: list[str]) -> None:
+    for v in opts:
+        st.session_state[_key(v)] = v in RECOMMENDED
+
+
+def candidates(ctx: Ctx) -> list[str]:
+    base = [v for v in PHYSICS + MEASUREMENT + CHEMISTRY + EXTRA if v in ctx.df.columns]
+    return base + added_quantities(ctx)[0]
 
 
 @st.cache_data(show_spinner="Calculating which parameters matter …")
@@ -47,18 +111,17 @@ def _point(df: pd.DataFrame, target: str, x: str, ctrls: tuple) -> dict | None:
 
 def results(ctx: Ctx) -> pd.DataFrame:
     """The table for the current sidebar rows and settings (cached)."""
-    measure, chem = settings()
-    cols = list(dict.fromkeys([TARGET] + candidates(ctx.df.columns) + ["Lab", "CT_ID"]))
+    cands = candidates(ctx)
+    cols = list(dict.fromkeys([TARGET] + cands + ["Lab", "CT_ID"]))
     df = ctx.df[[c for c in cols if c in ctx.df.columns]]
     df = df[df[TARGET] > 0]
-    return _table(df, tuple(candidates(df.columns)), tuple(controls_for(measure, chem, df.columns)))
+    return _table(df, tuple(cands), tuple(held_fixed(ctx)))
 
 
 def badge(ctx: Ctx, x: str, y: str) -> None:
     """A one-line result box for a plot of y against x."""
     if x == y or x not in ctx.df or y not in ctx.df:
         return
-    measure, chem = settings()
     label = ctx.label
     row = None
     if y == TARGET:
@@ -77,10 +140,10 @@ def badge(ctx: Ctx, x: str, y: str) -> None:
         if not row["clear"]:
             color = "#9a9893"
     else:
-        ctrls = controls_for(measure, chem, ctx.df.columns) if y == TARGET else []
+        ctrls = held_fixed(ctx) if y == TARGET else []
         cols = list(dict.fromkeys([x, y] + ctrls + ["Lab", "CT_ID"]))
         df = ctx.df[[c for c in cols if c in ctx.df.columns]]
-        p = _point(df, y, x, tuple(ctrls))
+        p = _point(df, y, x, tuple(c for c in ctrls if c != x))
         if p is None or not np.isfinite(p["tau"]):
             return
         extra = (f" · after removing other effects τ = {p['ptau']:+.2f}" if ctrls else "")
@@ -113,50 +176,97 @@ def _rows_labs(df: pd.DataFrame, cols: list[str]) -> tuple[int, int]:
     return len(sub), (sub["Lab"].nunique() if "Lab" in sub else 0)
 
 
+def _cost(df: pd.DataFrame, held: list[str], v: str) -> str:
+    """How many tests and labs holding v fixed costs, given the other ticks."""
+    others = [c for c in held if c != v]
+    a, b = _rows_labs(df, others), _rows_labs(df, others + [v])
+    if a[0] == b[0]:
+        return "costs no tests"
+    labs = f" and {a[1] - b[1]} lab{'s' if a[1] - b[1] != 1 else ''}" if a[1] != b[1] else ""
+    return f"{'costs' if v in held else 'would cost'} {a[0] - b[0]} tests{labs}"
+
+
+def _short(ctx: Ctx, v: str) -> str:
+    return {"Score": "quality score", "dTime": "test duration", "B": "boron",
+            "Li": "lithium"}.get(v, ctx.label(v).split(" [")[0])
+
+
+def settings_text(ctx: Ctx) -> str:
+    """One line saying how the choice differs from the recommended one ('' if it does not)."""
+    held = set(held_fixed(ctx))
+    rec = {v for v in _options(ctx) if v in RECOMMENDED}
+    plus = [_short(ctx, v) for v in _options(ctx) if v in held - rec]
+    minus = [_short(ctx, v) for v in _options(ctx) if v in rec - held]
+    parts = ([f"also held fixed: {', '.join(plus)}"] if plus else []) + \
+            ([f"not held fixed: {', '.join(minus)}"] if minus else [])
+    return "; ".join(parts)
+
+
+def _hold_panel(ctx: Ctx, df: pd.DataFrame) -> None:
+    opts = _options(ctx)
+    held = held_fixed(ctx)
+    usable, skipped = added_quantities(ctx)
+    n, labs = _rows_labs(df, held)
+    changed = settings_text(ctx)
+    title = (f"⚙ Held fixed: {', '.join(_short(ctx, v) for v in held) or 'nothing'}"
+             f"  ·  using {n} tests from {labs} labs" + ("  ·  ⚠ changed" if changed else ""))
+    with st.expander(title, expanded=ctx.expert):
+        st.caption("Ticked parameters are **held fixed** when the link of each *other* "
+                   "parameter with CGR is judged. Every parameter keeps its own row in the "
+                   "results either way: unticking only stops it being taken out of the "
+                   "others. A test needs a value for every ticked parameter, so ticks can cost "
+                   "tests; the grey text under each box says how many.")
+        groups = [(g, [v for v in vs if v in opts]) for g, vs in GROUPS]
+        if usable or skipped:
+            groups.append((ADDED, usable))
+        for group, vs in groups:
+            left, right = st.columns([1, 4])
+            left.markdown(f"**{group}**")
+            with right:
+                if vs:
+                    cells = st.columns(min(len(vs), 5))
+                    for i, v in enumerate(vs):
+                        with cells[i % len(cells)]:
+                            st.checkbox(_short(ctx, v) if v in RECOMMENDED | set(CHEMISTRY)
+                                        else ctx.label(v), key=_key(v))
+                            st.caption(_cost(df, held, v))
+                if group == ADDED and skipped:
+                    st.caption("Not offered: " + "; ".join(
+                        f"{ctx.label(c)} ({r})" for c, r in skipped.items()))
+                if group == ADDED and not vs and not skipped:
+                    st.caption("None yet.")
+        st.caption("SO₄ and Cl are shown in the results but never held fixed: most tests "
+                   "have no value for them.")
+        a, b = st.columns([1, 3])
+        a.button("Reset to recommended", on_click=_reset, args=(opts,),
+                 disabled=not changed)
+        if changed:
+            b.warning("Not the recommended choice (" + changed + "). The results below "
+                      "change with it.", icon="⚠")
+
+
 def render(ctx: Ctx) -> None:
     df = ctx.df
     if TARGET not in df:
         st.warning("This page needs a CGR column.")
         return
-    measure, chem = settings()
-    avail = df.columns
 
     st.markdown("#### Which parameters go together with crack growth rate?")
     st.caption("For every parameter: how strongly CGR rises or falls with it **after the "
                "effects of the other parameters are taken out**. Uses the rows chosen in the "
                "sidebar.")
-
-    # ---- settings with their visible effect on the data
-    base = _rows_labs(df, controls_for(False, False, avail))
-    with_m = _rows_labs(df, controls_for(True, False, avail))
-    with_c = _rows_labs(df, controls_for(measure, True, avail))
-    without_c = _rows_labs(df, controls_for(measure, False, avail))
-    a, b = st.columns(2)
-    with a:
-        st.toggle("Also remove measurement effects (quality score, test duration)",
-                  key="corr_measure",
-                  help="How a test was run may change the measured CGR. On: the quality "
-                       "score and test duration are taken out like the physical parameters. "
-                       "Rows without a test duration are left out.")
-        st.caption(f"Rows {base[0]} → {with_m[0]}, labs {base[1]} → {with_m[1]} when on.")
-    with b:
-        st.toggle("Also remove water chemistry (boron, lithium)", key="corr_chem",
-                  help="On: B and Li are taken out too. Many tests have no B/Li values "
-                       "(pure-water tests), so those rows are left out — check which labs "
-                       "disappear below.")
-        lost = df[(df[TARGET] > 0) & df["B"].isna()]["Lab"].value_counts().head(3) \
-            if "B" in df and "Lab" in df else pd.Series(dtype=int)
-        lost_txt = ", ".join(f"{k} {v}" for k, v in lost.items())
-        st.caption(f"Rows {without_c[0]} → {with_c[0]}, labs {without_c[1]} → {with_c[1]} when "
-                   f"on" + (f" (most rows lost: {lost_txt})." if lost_txt else "."))
+    _hold_panel(ctx, df)
+    held = held_fixed(ctx)
 
     tab = results(ctx)
     if tab.empty or "ptau" not in tab:
-        st.warning("Not enough rows with all values filled in. Loosen the sidebar filters.")
+        st.warning("Not enough rows with all values filled in. Loosen the sidebar filters "
+                   "or untick some parameters.")
         return
     tab = tab[np.isfinite(tab["ptau"])].copy()
     distinct = {p: int(df[p].nunique()) for p in tab["parameter"]}
     tab["notes"] = [corr.notes(r, distinct.get(r["parameter"])) for _, r in tab.iterrows()]
+    tab["held"] = tab["parameter"].isin(held)
 
     _summary(ctx, tab)
     show_fig(_dumbbell(ctx, tab))
@@ -171,9 +281,9 @@ def render(ctx: Ctx) -> None:
   for both quantities minus the chance they are in opposite order. τ = +0.30 means 65 % of
   pairs agree. It handles the many equal values in this data (e.g. CW = 20 %).
 - **After removing other effects** = Kendall's *partial* τ (Kendall 1942): the link left
-  over when the other parameters are held fixed. Taken out here: **{', '.join(ctx.label(c)
-  for c in controls_for(measure, chem, avail))}**. SO₄ and Cl are shown but not taken out
-  of the others.
+  over when the other parameters are held fixed. Held fixed here: **{', '.join(ctx.label(c)
+  for c in held) or 'nothing'}** (change this in ⚙ above). SO₄ and Cl are shown but never
+  held fixed.
 - **95 % range**: bootstrap (Efron 1979), {B_REPS} resamples of whole specimens, because
   tests on the same specimen are not independent.
 - **Spearman check**: the same idea with Spearman's ρ. Same sign = the result does not
@@ -203,6 +313,9 @@ def _summary(ctx: Ctx, tab: pd.DataFrame) -> None:
         text += " " + ", ".join(mirage) + (" looks related at first sight, but" if len(mirage) == 1
                                            else " look related at first sight, but") + \
                 " that came from the other parameters."
+    changed = settings_text(ctx)
+    if changed:
+        text += f" *(Not the recommended choice: {changed}.)*"
     st.info(text, icon="🔎")
 
 
@@ -257,6 +370,7 @@ def _table_view(ctx: Ctx, tab: pd.DataFrame) -> None:
         return f"{arrow} · {r['strength']}, {'clear' if r['clear'] else 'uncertain'}"
     out = pd.DataFrame({
         "parameter": [ctx.label(p) for p in tab["parameter"]],
+        "held fixed for the others": ["yes" if h else "" for h in tab["held"]],
         "what it means for CGR": [effect(r) for _, r in tab.iterrows()],
         "τ after removing others": [f"{r['ptau']:+.2f}  [{r['ptau_lo']:+.2f} … {r['ptau_hi']:+.2f}]"
                                     for _, r in tab.iterrows()],

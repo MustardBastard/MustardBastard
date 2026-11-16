@@ -53,16 +53,37 @@ independent. The bar spans the middle 95 % of the results.
 More rows give narrower bars (4× the rows ≈ half the width). But *which* rows
 remain matters even more than how many.
 
-## The two switches
+## What is held fixed (⚙ box at the top)
 
-**Remove measurement effects (quality score, test duration).** These describe
-how a test was run, not the steel or the water. On: their influence is taken out
-before the physical parameters are judged. Rows without a test duration drop out.
+The ⚙ box lists every parameter that can be **held fixed** while the others are
+judged, in groups. Tick or untick each one separately. The grey text under a box
+says how many tests (and labs) holding it fixed costs, because a test needs a
+value for every ticked parameter.
 
-**Remove water chemistry (boron, lithium).** Many tests were run in pure water and
-have no B/Li values. On: those rows drop out, and with them whole labs (most of
-GE Research's data, for example). Watch the row and lab counts under the switch:
-a change in the result may come from the different rows, not from the chemistry.
+- **Physics** (K, %CW, temperature, O₂, H₂): ticked by default.
+- **Measurement** (quality score, test duration): ticked by default. They describe
+  how a test was run, not the steel or the water; holding them fixed keeps that
+  influence out of the physical parameters. Tests without a duration drop out.
+- **Water chemistry** (boron, lithium): not ticked by default. Many tests were run
+  in pure water and have no B/Li values, so ticking them drops whole labs (most of
+  GE Research's data, for example). A change in the result may then come from the
+  different rows, not from the chemistry.
+- **Added quantities**: the quantities you made yourself (🗂 Data → Add a quantity
+  or Auto-fill properties). Not ticked by default. Some are not offered, with the
+  reason shown:
+  - made from CGR itself (e.g. CGR from crack length): that would be circular;
+  - in exactly the same (or reverse) order as a parameter already there, such as
+    temperature in kelvin or 1000/T against temperature: for a rank method they
+    carry nothing new;
+  - only one value in the data.
+
+**Unticking does not remove a parameter from the results.** Its own row stays and
+still shows its own link with CGR; unticking only stops it being taken out of the
+*others*. **Reset to recommended** brings back the default ticks. When the choice
+differs from the recommended one, the summary sentence and the table say so.
+
+SO₄ and Cl are shown in the results but never held fixed: most tests have no value
+for them.
 
 ## Spearman check
 

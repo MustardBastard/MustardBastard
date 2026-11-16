@@ -112,4 +112,4 @@ Kendall's τ: pick two tests at random; τ = chance they are in the same order f
 Bootstrap: recalculating the result on 1000 resampled versions of the data (whole specimens drawn with replacement) to see how much it could vary by chance.
 
 ## controls
-Parameters whose effect is taken out before measuring a link, like holding the temperature fixed when comparing two cold-work levels.
+Parameters held fixed (their effect taken out) before measuring a link, like holding the temperature fixed when comparing two cold-work levels. Chosen with the ticks in the ⚙ box on 🗂 Data → What matters for CGR.
