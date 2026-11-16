@@ -80,8 +80,21 @@ to be repeated.
   ones (formula depends on CGR/da) and redundant ones (same/reverse rank order as an
   existing parameter: `correlation.screen_added`). Each box shows the tests/labs it
   costs; Reset to recommended; non-recommended choice noted in summary + table.
-- Next (agreed): synthetic-data validation experiment of the What-matters method,
-  compared with the EPRI papers (MRP-458 etc.). Goal: how valid are the tool's results.
+- **Synthetic check done** (`scc_plotter/experiments/synthetic_check.py`, results JSON
+  next to it; real rows kept, CGR replaced by the MRP-458 law + noise sized from the
+  real data: 0.53 decades around the law on Mainstream, lab SD ~0.26). Findings:
+  pure noise → ~5–10 % false "clear" (calibrated); true K/CW/Temp(/O2) found 90–100 %,
+  never wrong sign; BUT (1) parameters that vary only between labs (Mainstream O2,
+  H2, B, Li: 0–2 % of differing pairs within a lab; Score/dTime partly) get 20–50 %
+  false "clear" and too-narrow ranges (coverage 56–80 %) when labs differ;
+  (2) partial τ leaves residual confounding: with no Score effect, Score still shows
+  −0.05…−0.11 (H2 ±0.07). Vs real Mainstream: Temp/CW match the law; real K (+0.18)
+  weaker than the K^2.5 law gives (+0.30), consistent with MRP-458's raw K^2.15 and
+  AIAP median 2.18; real Score −0.27 ≫ law-only −0.05…−0.11 → a real effect
+  (~−0.2 decades per score step reproduces it). Proposed (not built): lab-level
+  bootstrap and/or within-lab pairs; warn when a parameter varies only between labs.
+  EPRI PDFs (MRP-458, MRP-352, MRP-236r1, SCC testing guidelines) came in the user's
+  zip "DCPD"; not in the repo.
 - Open proposal (not yet built): when ≤8 groups are on screen, give each its
   own colour instead of folding small labs into "Other"; also add the
   Expert-mode colour options to the 3D plot.
